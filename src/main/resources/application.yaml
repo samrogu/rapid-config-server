@@ -1,0 +1,20 @@
+server:
+  port: 8888
+  servlet:
+    context-path: /fly-config-server
+spring:
+  cloud:
+    config:
+      server:
+        git:
+          uri: ""  # Dejamos vacío ya que no usaremos una URI estática
+          searchPaths: # Si quieres especificar rutas por defecto
+            - "config-repo"
+  datasource:
+    url: jdbc:postgresql://localhost:5432/your_db  # Cambia 'your_db' al nombre de tu base de datos
+    username: your_user  # Tu nombre de usuario de PostgreSQL
+    password: your_password  # Tu contraseña de PostgreSQL
+    driver-class-name: org.postgresql.Driver  # Controlador JDBC para PostgreSQL
+  jpa:
+    hibernate:
+      ddl-auto: update  # Estrategia de actualización de esquema, puede ser 'none', 'create', 'create-drop', 'update' Dialecto de Hibernate para PostgreSQL

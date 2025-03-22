@@ -1,0 +1,22 @@
+services:
+  db:
+    image: postgres:latest  # Usamos la imagen oficial de PostgreSQL
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: your_user  # El nombre de usuario para PostgreSQL
+      POSTGRES_PASSWORD: your_password  # La contraseña para el usuario de PostgreSQL
+      POSTGRES_DB: your_db  # El nombre de la base de datos que se creará
+    ports:
+      - "5432:5432"  # Exponemos el puerto 5432 para poder conectar desde la aplicación
+    volumes:
+      - postgres-datadt:/var/lib/postgresql/data  # Persistencia de los datos de PostgreSQL
+  vault:
+    image: hashicorp/vault:latest
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: testtoken
+    ports:
+      - 8200:8200
+    privileged: true
+
+volumes:
+  postgres-datadt:
