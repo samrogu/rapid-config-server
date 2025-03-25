@@ -3,12 +3,15 @@ package com.saguro.rapid.configserver.entity;
 import java.util.Map;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
 @Entity
 public class GitRepository {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String organization;
     private String application;
@@ -17,12 +20,19 @@ public class GitRepository {
     private String profile;
     private String label;
     private boolean enabled;
+
+    // Campos específicos para Vault
+    private String vaultUrl;       // URL del servidor Vault
+    private String secretEngine;   // Motor de secretos (e.g., kv-v2)
+    private String vaultToken;     // Token de autenticación para Vault
+    private String appRoleId;      // Opcional: Role ID para AppRole
+    private String appRoleSecret;  // Opcional: Secret ID para AppRole
     
     public GitRepository() {
         // No-argument constructor
     }
 
-    public GitRepository(Long id, String organization, String application, String microservice, String uri, String profile, String label, boolean enabled) {
+    public GitRepository(Long id, String organization, String application, String microservice, String uri, String profile, String label, boolean enabled, String vaultUrl, String secretEngine, String vaultToken, String appRoleId, String appRoleSecret) {
         this.id = id;
         this.organization = organization;
         this.application = application;
@@ -31,6 +41,11 @@ public class GitRepository {
         this.profile = profile;
         this.label = label;
         this.enabled = enabled;
+        this.vaultUrl = vaultUrl;
+        this.secretEngine = secretEngine;
+        this.vaultToken = vaultToken;
+        this.appRoleId = appRoleId;
+        this.appRoleSecret = appRoleSecret;
     }
 
     // Getters and setters
@@ -96,5 +111,45 @@ public class GitRepository {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public String getVaultUrl() {
+        return vaultUrl;
+    }
+
+    public void setVaultUrl(String vaultUrl) {
+        this.vaultUrl = vaultUrl;
+    }
+
+    public String getSecretEngine() {
+        return secretEngine;
+    }
+
+    public void setSecretEngine(String secretEngine) {
+        this.secretEngine = secretEngine;
+    }
+
+    public String getVaultToken() {
+        return vaultToken;
+    }
+
+    public void setVaultToken(String vaultToken) {
+        this.vaultToken = vaultToken;
+    }
+
+    public String getAppRoleId() {
+        return appRoleId;
+    }
+
+    public void setAppRoleId(String appRoleId) {
+        this.appRoleId = appRoleId;
+    }
+
+    public String getAppRoleSecret() {
+        return appRoleSecret;
+    }
+
+    public void setAppRoleSecret(String appRoleSecret) {
+        this.appRoleSecret = appRoleSecret;
     }
 }

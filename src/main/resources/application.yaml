@@ -1,10 +1,19 @@
 server:
   port: 8888
   servlet:
-    context-path: /fly-config-server
+    context-path: /rapid-config-server
 spring:
+  main:
+    allow-bean-definition-overriding: true
   cloud:
+    vault:
+      enabled: true
+      token: testtoken # Usa una variable de entorno para el token
+      kv:
+        enabled: true
     config:
+      headers:
+        X-Vault-Token: testtoken
       server:
         git:
           uri: ""  # Dejamos vacío ya que no usaremos una URI estática
@@ -15,6 +24,9 @@ spring:
     username: your_user  # Tu nombre de usuario de PostgreSQL
     password: your_password  # Tu contraseña de PostgreSQL
     driver-class-name: org.postgresql.Driver  # Controlador JDBC para PostgreSQL
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
   jpa:
     hibernate:
       ddl-auto: update  # Estrategia de actualización de esquema, puede ser 'none', 'create', 'create-drop', 'update' Dialecto de Hibernate para PostgreSQL

@@ -25,12 +25,14 @@ import java.util.Set;
 public class DynamicConfigComponent implements EnvironmentRepository{
 
     private GitRepositoryService gitRepositoryService;
+    VaultDynamicConfig vaultDynamicConfig;
 
     private static final Set<String> SUPPORTED_EXTENSIONS = Set.of(".properties", ".yml", ".yaml");
 
-    public DynamicConfigComponent(GitRepositoryService gitRepositoryService) {
+    public DynamicConfigComponent(GitRepositoryService gitRepositoryService, VaultDynamicConfig vaultDynamicConfig) {
         // Puedes configurar la URI base de tu servidor de repositorios si es necesario
         this.gitRepositoryService = gitRepositoryService;
+        this.vaultDynamicConfig = vaultDynamicConfig;
     }
 
     @Override
@@ -51,8 +53,23 @@ public class DynamicConfigComponent implements EnvironmentRepository{
             .filter(repo -> shouldUseRepositoryForConfig(repo, profile, label))
             .findFirst();
 
-        return repositoryOpt.map(repo -> loadConfigFromRepository(repo, microservice, profile, label))
-                            .orElse(null);
+        return repositoryOpt.map(repo -> {
+            if (repo.getVaultUrl() != null && repo.getVaultToken() != null && repo.getSecretEngine() != null) {
+                // Si se ha configurado Vault, obtener las propiedades desde allí
+                Map<String, Object> vaultProperties = vaultDynamicConfig.configureAndFetchVaultProperties(repo, microservice);
+                Environment environment = loadConfigFromRepository(repo, microservice, profile, label);
+                
+                // Fusionar las propiedades de Vault con las del repositorio Git
+                if (!vaultProperties.isEmpty()) {
+                    PropertySource propertyVault = new PropertySource("vault", vaultProperties);
+                    environment.add(propertyVault);
+                }
+                return environment;
+                
+            } else {
+                return loadConfigFromRepository(repo, microservice, profile, label);
+            }
+        }).orElse(null);
     }
 
     private boolean shouldUseRepositoryForConfig(GitRepository repo, String profile, String label) {
@@ -71,10 +88,10 @@ public class DynamicConfigComponent implements EnvironmentRepository{
             File configFile = findConfigFile(tempDir, application, profile);
 
             // Validar que el archivo exista
-            validateConfigFile(configFile);
+            //validateConfigFile(configFile);
 
             // Cargar el entorno desde el archivo de configuración
-            return getPropertySource(application, profile, git, configFile);
+            return getPropertySource(application, profile, git, configFile, repo.getUri());
 
         } catch (IOException e) {
             throw new RuntimeException("Error al manejar el archivo de configuración", e);
@@ -110,29 +127,29 @@ public class DynamicConfigComponent implements EnvironmentRepository{
         return null;
     }
 
-    private void validateConfigFile(File configFile) throws IOException {
+    private boolean validateConfigFile(File configFile) {
         if (configFile == null || !configFile.exists()) {
-            throw new IOException("No se encontró el archivo de configuración en la ruta esperada.");
+            return false;
         }
+        return true;
     }
 
-    private Environment getPropertySource(String application, String profile, Git git, File configFile) throws IOException {
-        // Obtener la extensión del archivo
-        String fileExtension = getFileExtension(configFile);
-
-        // Validar si la extensión es soportada
-        if (!SUPPORTED_EXTENSIONS.contains(fileExtension.toLowerCase())) {
-            throw new IllegalArgumentException("Unsupported file extension: " + fileExtension);
-        }
-
-        // Cargar las propiedades según el tipo de archivo
-        Map<String, Object> properties = loadConfigFile(configFile, fileExtension);
-
-        // Crear el entorno y agregar las propiedades
+    private Environment getPropertySource(String application, String profile, Git git, File configFile, String urlGit) throws IOException {
+        // Crear el entorno
         Environment environment = new Environment(application, profile);
-        PropertySource propertySource = new PropertySource("dynamicConfig", properties);
-        environment.add(propertySource);
-
+        if (validateConfigFile(configFile)) {
+            // Obtener la extensión del archivo
+            String fileExtension = getFileExtension(configFile);
+            // Validar si la extensión es soportada
+            if (!SUPPORTED_EXTENSIONS.contains(fileExtension.toLowerCase())) {
+                throw new IllegalArgumentException("Unsupported file extension: " + fileExtension);
+            }
+            // Cargar las propiedades según el tipo de archivo
+            Map<String, Object> properties = loadConfigFile(configFile, fileExtension);
+            // Crear el entorno y agregar las propiedades
+            PropertySource propertySource = new PropertySource(urlGit, properties);
+            environment.add(propertySource);
+        }
         // Usar try-with-resources para cerrar el repositorio Git
         try (git) {
             return environment;
