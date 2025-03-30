@@ -4,7 +4,6 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.cloud.config.environment.Environment;
 import org.springframework.cloud.config.environment.PropertySource;
-import org.springframework.cloud.config.server.environment.EnvironmentRepository;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
 
@@ -22,7 +21,7 @@ import java.util.Set;
 
 
 @Component
-public class DynamicConfigComponent implements EnvironmentRepository{
+public class DynamicConfigComponent{
 
     private GitRepositoryService gitRepositoryService;
     VaultDynamicConfig vaultDynamicConfig;
@@ -34,8 +33,14 @@ public class DynamicConfigComponent implements EnvironmentRepository{
         this.gitRepositoryService = gitRepositoryService;
         this.vaultDynamicConfig = vaultDynamicConfig;
     }
-
-    @Override
+    /**
+     * Método para encontrar la configuración de un microservicio específico.
+     *
+     * @param application Nombre de la aplicación (ruta completa con organización, aplicación y microservicio)
+     * @param profile     Perfil de configuración
+     * @param label       Etiqueta de versión
+     * @return Un objeto Environment que contiene la configuración del microservicio
+     */
     public Environment findOne(String application, String profile, String label) {
         // Asumiendo que application es la ruta completa con la organización, aplicación y microservicio
         String[] pathParts = application.split("/");

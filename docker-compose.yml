@@ -17,6 +17,9 @@ services:
     ports:
       - 8200:8200
     privileged: true
+    volumes:
+      - vault-datadt:/vault/
 
 volumes:
   postgres-datadt:
+  vault-datadt:

@@ -1,7 +1,5 @@
-// filepath: /src/main/java/com/saguro/rapid/configserver/entity/Application.java
-package com.saguro.rapid.configserver.entity;
+package com.saguro.rapid.configserver.dto;
 
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,22 +9,13 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity
-public class Application {
+public class ApplicationDTO {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(unique = true, nullable = false)
     private String name;
-
     private String description;
 
-    @ManyToOne
-    @JoinColumn(name = "organization_id", nullable = false)
-    private Organization organization;
-
+    private Long organizationId; // Organización a la que pertenece la aplicación
     // Información relacionada con Git y Vault
     private String uri;            // URI del repositorio Git
     private String profile;        // Perfil de configuración
@@ -38,4 +27,5 @@ public class Application {
     private String vaultToken;     // Token de autenticación para Vault
     private String appRoleId;      // Opcional: Role ID para AppRole
     private String appRoleSecret;  // Opcional: Secret ID para AppRole
+
 }

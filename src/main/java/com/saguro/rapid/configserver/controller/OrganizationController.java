@@ -1,6 +1,6 @@
 package com.saguro.rapid.configserver.controller;
 
-import com.saguro.rapid.configserver.entity.Organization;
+import com.saguro.rapid.configserver.dto.OrganizationDTO;
 import com.saguro.rapid.configserver.service.OrganizationService;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,22 +17,27 @@ public class OrganizationController {
     }
 
     @GetMapping
-    public List<Organization> getAllOrganizations() {
+    public List<OrganizationDTO> getAllOrganizations() {
         return organizationService.getAllOrganizations();
     }
 
     @GetMapping("/{id}")
-    public Organization getOrganizationById(@PathVariable Long id) {
+    public OrganizationDTO getOrganizationById(@PathVariable("id") Long id) {
         return organizationService.getOrganizationById(id);
     }
 
     @PostMapping
-    public Organization createOrganization(@RequestBody Organization organization) {
-        return organizationService.createOrganization(organization);
+    public OrganizationDTO createOrganization(@RequestBody OrganizationDTO organizationDTO) {
+        return organizationService.createOrganization(organizationDTO);
+    }
+
+    @PutMapping("/{id}")
+    public OrganizationDTO updateOrganization(@PathVariable("id") Long id, @RequestBody OrganizationDTO organizationDTO) {
+        return organizationService.updateOrganization(id, organizationDTO);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteOrganization(@PathVariable Long id) {
+    public void deleteOrganization(@PathVariable("id") Long id) {
         organizationService.deleteOrganization(id);
     }
 }

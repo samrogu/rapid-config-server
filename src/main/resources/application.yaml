@@ -30,3 +30,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update  # Estrategia de actualización de esquema, puede ser 'none', 'create', 'create-drop', 'update' Dialecto de Hibernate para PostgreSQL
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
