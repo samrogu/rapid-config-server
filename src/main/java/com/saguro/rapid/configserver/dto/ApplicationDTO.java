@@ -14,18 +14,23 @@ public class ApplicationDTO {
     private Long id;
     private String name;
     private String description;
+    private String uri;
+    private String profile;
+    private String label;
+    private boolean enabled;
+    private String vaultUrl;
+    private String secretEngine;
+    private String vaultToken;
+    private String appRoleId;
+    private String appRoleSecret;
 
-    private OrganizationDTO organization; // DTO de la organización asociada
-    // Información relacionada con Git y Vault
-    private String uri;            // URI del repositorio Git
-    private String profile;        // Perfil de configuración
-    private String label;          // Rama o etiqueta en Git
-    private boolean enabled;       // Si la aplicación está habilitada
+    private Long organizationId; // Solo el ID de la organización
 
-    private String vaultUrl;       // URL del servidor Vault
-    private String secretEngine;   // Motor de secretos (e.g., kv-v2)
-    private String vaultToken;     // Token de autenticación para Vault
-    private String appRoleId;      // Opcional: Role ID para AppRole
-    private String appRoleSecret;  // Opcional: Secret ID para AppRole
+    public Long getOrganizationId() {
+        return organizationId;
+    }
+    public void setOrganizationId(Long organizationId) {
+        this.organizationId = organizationId;
+    }
 
 }
