@@ -10,7 +10,9 @@ public interface OrganizationMapper {
 
     OrganizationMapper INSTANCE = Mappers.getMapper(OrganizationMapper.class);
 
+    // Mapeo de Organization a OrganizationDTO
     OrganizationDTO toDTO(Organization organization);
 
+    // Mapeo de OrganizationDTO a Organization
     Organization toEntity(OrganizationDTO organizationDTO);
 }

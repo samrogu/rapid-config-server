@@ -15,7 +15,7 @@ public class ApplicationDTO {
     private String name;
     private String description;
 
-    private Long organizationId; // Organización a la que pertenece la aplicación
+    private OrganizationDTO organization; // DTO de la organización asociada
     // Información relacionada con Git y Vault
     private String uri;            // URI del repositorio Git
     private String profile;        // Perfil de configuración
