@@ -29,7 +29,7 @@ public class ApplicationController {
     }
 
     @GetMapping("/organization/{organizationId}")
-    public List<ApplicationDTO> getApplicationsByOrganization(@PathVariable Long organizationId) {
+    public List<ApplicationDTO> getApplicationsByOrganization(@PathVariable("organizationId") Long organizationId) {
         return applicationService.getApplicationsByOrganization(organizationId);
     }
 
