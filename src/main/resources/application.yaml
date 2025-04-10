@@ -34,3 +34,6 @@ spring:
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
+
+configjwt:
+  appkey: "hItRXDBELO83t8ZnhqxOeJL0XHBh5HCJd9Tj5DHHsyR3JpGBi/PDt1h6rMuxrFGOpXAL/Dnl+jikpHPNwSE8tg==" # Valor predeterminado

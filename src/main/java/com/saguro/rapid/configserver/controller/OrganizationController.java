@@ -1,6 +1,7 @@
 package com.saguro.rapid.configserver.controller;
 
 import com.saguro.rapid.configserver.dto.OrganizationDTO;
+import com.saguro.rapid.configserver.dto.CountDTO;
 import com.saguro.rapid.configserver.service.OrganizationService;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,5 +40,10 @@ public class OrganizationController {
     @DeleteMapping("/{id}")
     public void deleteOrganization(@PathVariable("id") Long id) {
         organizationService.deleteOrganization(id);
+    }
+
+    @GetMapping("/counts")
+    public CountDTO getCounts() {
+        return organizationService.getCounts();
     }
 }

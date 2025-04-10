@@ -1,6 +1,8 @@
 package com.saguro.rapid.configserver.components;
 
+import com.saguro.rapid.configserver.entity.Role;
 import com.saguro.rapid.configserver.entity.User;
+import com.saguro.rapid.configserver.repository.RoleRepository;
 import com.saguro.rapid.configserver.repository.UserRepository;
 
 import org.springframework.boot.CommandLineRunner;
@@ -13,10 +15,12 @@ import java.util.Set;
 public class UserInitializer implements CommandLineRunner {
 
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserInitializer(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserInitializer(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -24,6 +28,15 @@ public class UserInitializer implements CommandLineRunner {
     public void run(String... args) throws Exception {
         String defaultUsername = "admin";
         String defaultPassword = "admin";
+        String defaultRoleName = "ROLE_ADMIN";
+
+        // Verificar si el rol por defecto ya existe, si no, crearlo
+        Role defaultRole = roleRepository.findByName(defaultRoleName)
+                .orElseGet(() -> {
+                    Role role = new Role();
+                    role.setName(defaultRoleName);
+                    return roleRepository.save(role);
+                });
 
         // Verificar si el usuario ya existe
         if (userRepository.findByUsername(defaultUsername).isEmpty()) {
@@ -31,7 +44,7 @@ public class UserInitializer implements CommandLineRunner {
             User user = new User();
             user.setUsername(defaultUsername);
             user.setPassword(passwordEncoder.encode(defaultPassword));
-            user.setRoles(Set.of("ROLE_ADMIN"));
+            user.setRoles(Set.of(defaultRole)); // Asignar el rol al usuario
 
             userRepository.save(user);
             System.out.println("Usuario por defecto creado: " + defaultUsername);

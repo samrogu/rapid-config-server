@@ -28,7 +28,9 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable()) // Deshabilitar CSRF para APIs REST
+                .cors(cors -> cors.configure(http)) // Habilitar CORS para APIs REST
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/swagger-ui.html", "/v3/api-docs/**", "/swagger-ui/**").permitAll() 
                         .requestMatchers("/api/auth/**").permitAll() // Permitir acceso al endpoint de autenticación
                         .anyRequest().authenticated() // Requerir autenticación para todas las demás rutas
                 )

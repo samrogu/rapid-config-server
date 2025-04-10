@@ -3,18 +3,28 @@ package com.saguro.rapid.configserver.service;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+
+import java.util.Base64;
 import java.util.Date;
 
 @Service
 public class JwtService {
 
-    private static final SecretKey SECRET_KEY = io.jsonwebtoken.security.Keys.secretKeyFor(SignatureAlgorithm.HS512);
+    private final SecretKey SECRET_KEY;
     private static final long EXPIRATION_TIME = 86400000; // 1 día en milisegundos
+
+    public JwtService(@Value("${configjwt.appkey}") String secretKeyString) {
+        // Leer la clave desde el entorno o el archivo de configuración
+        this.SECRET_KEY = Keys.hmacShaKeyFor(Base64.getDecoder().decode(secretKeyString));
+    }
 
     public String generateToken(Authentication authentication) {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
