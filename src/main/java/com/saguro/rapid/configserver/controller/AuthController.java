@@ -9,7 +9,11 @@ import org.springframework.web.bind.annotation.*;
 import com.saguro.rapid.configserver.service.JwtService;
 
 import java.util.Map;
-
+@CrossOrigin(
+    origins = "http://localhost:3000", // Cambia esto por el dominio de tu cliente
+    methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS},
+    allowedHeaders = {"Authorization", "Content-Type"}
+)
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
