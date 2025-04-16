@@ -1,44 +1,24 @@
 package com.saguro.rapid.configserver.controller;
 
-import com.saguro.rapid.configserver.dto.AuthRequestDTO;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
+import com.saguro.rapid.configserver.dto.LoginRequest;
+import com.saguro.rapid.configserver.dto.LoginResponse;
+import com.saguro.rapid.configserver.service.AuthService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.saguro.rapid.configserver.service.JwtService;
 
-import java.util.Map;
-@CrossOrigin(
-    origins = "http://localhost:3000", // Cambia esto por el dominio de tu cliente
-    methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS},
-    allowedHeaders = {"Authorization", "Content-Type"}
-)
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    private final AuthenticationManager authenticationManager;
-    private final JwtService jwtService;
+    private final AuthService authService;
 
-    public AuthController(AuthenticationManager authenticationManager, JwtService jwtService) {
-        this.authenticationManager = authenticationManager;
-        this.jwtService = jwtService;
+    public AuthController(AuthService authService) {
+        this.authService = authService;
     }
 
     @PostMapping("/login")
-    public Map<String, String> login(@RequestBody AuthRequestDTO authRequest) {
-        try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword())
-            );
-
-            // Generar el token JWT
-            String token = jwtService.generateToken(authentication);
-
-            return Map.of("token", token);
-        } catch (AuthenticationException e) {
-            throw new RuntimeException("Invalid username or password");
-        }
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
+        String token = authService.authenticate(loginRequest.getUsername(), loginRequest.getPassword());
+        return ResponseEntity.ok(new LoginResponse(token));
     }
 }
