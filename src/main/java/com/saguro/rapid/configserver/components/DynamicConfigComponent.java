@@ -90,6 +90,12 @@ public class DynamicConfigComponent {
 
     private Environment loadConfigFromApplication(Application appEntity, String application, String profile, String label) {
         try {
+            if (label.contains("..") || label.contains("/") || label.contains("\\")) {
+                throw new IllegalArgumentException("Invalid filename");
+            }
+            if (application.contains("..") || application.contains("/") || application.contains("\\")) {
+                throw new IllegalArgumentException("Invalid filename");
+            }
             File tempDir = prepareTemporaryDirectory(label);
             Git git = cloneRepository(appEntity, tempDir, label);
 
