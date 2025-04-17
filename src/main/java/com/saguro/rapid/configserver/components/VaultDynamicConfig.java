@@ -7,7 +7,6 @@ import org.springframework.vault.core.VaultTemplate;
 import org.springframework.vault.support.VaultResponse;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.DefaultUriBuilderFactory;
-import org.springframework.web.util.UriBuilder;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 
 import com.saguro.rapid.configserver.entity.Application;
@@ -15,7 +14,6 @@ import com.saguro.rapid.configserver.enums.VaultAuthMethod;
 
 import java.util.Collections;
 import java.util.Map;
-import java.net.URI;
 
 @Component
 public class VaultDynamicConfig {
