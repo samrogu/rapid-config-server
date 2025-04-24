@@ -29,6 +29,7 @@ dependencies {
     implementation 'org.springframework.cloud:spring-cloud-config-server'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
 	// Dependencias de MapStruct
     implementation 'org.mapstruct:mapstruct:1.6.3'
 
@@ -41,10 +42,23 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok:1.18.36'
 	annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
 
-
     // Dependencias de Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // Dependencias de JJWT
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+    // Swagger/OpenAPI
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
+
+    // BCrypt para codificación de contraseñas
+    implementation 'org.springframework.security:spring-security-crypto'
+
+    // Eliminar esta línea si no usas Thymeleaf
+    // implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 }
 
 dependencyManagement {

@@ -9,6 +9,7 @@ import com.saguro.rapid.configserver.repository.OrganizationRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -92,11 +93,20 @@ public class ApplicationService {
         existingApplication.setVaultToken(applicationDTO.getVaultToken());
         existingApplication.setAppRoleId(applicationDTO.getAppRoleId());
         existingApplication.setAppRoleSecret(applicationDTO.getAppRoleSecret());
+        existingApplication.setVaultUsername(applicationDTO.getVaultUsername()); // Nuevo campo
+        existingApplication.setVaultPassword(applicationDTO.getVaultPassword()); // Nuevo campo
+        existingApplication.setVaultAuthMethod(applicationDTO.getVaultAuthMethod()); // Nuevo campo
 
         // Guardar los cambios en la base de datos
         Application updatedApplication = applicationRepository.save(existingApplication);
 
         // Convertir la entidad actualizada a DTO y devolverla
         return applicationMapper.toDTO(updatedApplication);
+    }
+
+    public Optional<Application> findByOrganizationAndUidAndMicroservice(
+            String uidOrg, String uidApp, String label) {
+        return applicationRepository.findByOrganizationUidAndUidAndLabel(
+            uidOrg, uidApp, label);
     }
 }
