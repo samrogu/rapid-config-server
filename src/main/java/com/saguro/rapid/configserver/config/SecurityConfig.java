@@ -32,7 +32,7 @@ public class SecurityConfig {
             .securityMatcher("/config/**") // Solo para rutas /config
             .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
             .httpBasic(Customizer.withDefaults()) // Basic Auth
-            .csrf(csrf -> csrf.disable());
+            .csrf(Customizer.withDefaults());
 
         return http.build();
     }
