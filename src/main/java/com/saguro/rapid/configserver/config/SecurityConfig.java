@@ -49,7 +49,7 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-            .csrf(csrf -> csrf.disable())
+            .csrf(csrf -> csrf.ignoringRequestMatchers("/api/auth/**")) // Disable CSRF for specific endpoints if necessary
             .cors(cors -> cors.configure(http)); // Asumiendo que tienes config global para CORS
 
         return http.build();
