@@ -38,7 +38,7 @@ public class ApplicationController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteApplication(@PathVariable Long id) {
+    public void deleteApplication(@PathVariable("id") Long id) {
         applicationService.deleteApplication(id);
     }
 

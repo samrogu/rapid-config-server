@@ -8,6 +8,7 @@ import lombok.Setter;
 import com.saguro.rapid.configserver.enums.VaultAuthMethod;
 
 import java.security.SecureRandom;
+import java.util.List;
 
 @Getter
 @Setter
@@ -53,6 +54,9 @@ public class Application {
     // Campos adicionales para autenticación por usuario y contraseña
     private String vaultUsername; // Nombre de usuario para autenticación UserPass
     private String vaultPassword; // Contraseña para autenticación UserPass
+
+    @OneToMany(mappedBy = "application", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserPermission> permissions;
 
     private static final String ALPHANUMERIC = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     private static final int UID_LENGTH = 6;

@@ -21,5 +21,5 @@ public class OrganizationDTO {
     private String uid; // UID único para identificar la organización
     @JsonInclude(JsonInclude.Include.NON_NULL) // Ignorar si es null
     private List<ApplicationDTO> applications;
-
+    private List<String> permissions;
 }

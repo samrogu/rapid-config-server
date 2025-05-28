@@ -38,3 +38,8 @@ springdoc:
 
 configjwt:
   appkey: "hItRXDBELO83t8ZnhqxOeJL0XHBh5HCJd9Tj5DHHsyR3JpGBi/PDt1h6rMuxrFGOpXAL/Dnl+jikpHPNwSE8tg==" # Valor predeterminado
+
+logging:
+  level:
+    root: info
+    com.saguro.rapid.configserver: WARN

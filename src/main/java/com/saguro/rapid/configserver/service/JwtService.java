@@ -1,9 +1,11 @@
 package com.saguro.rapid.configserver.service;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -38,12 +40,40 @@ public class JwtService {
     }
 
     public boolean validateToken(String token, UserDetails userDetails) {
-        String username = extractUsername(token);
-        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(SECRET_KEY)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+
+            String username = claims.getSubject();
+
+            // Verificar si el token ha expirado
+            if (isTokenExpired(token)) {
+                throw new IllegalArgumentException("Token expirado");
+            }
+
+            return username.equals(userDetails.getUsername());
+        } catch (ExpiredJwtException e) {
+            throw new IllegalArgumentException("Token expirado", e);
+        } catch (SignatureException e) {
+            throw new IllegalArgumentException("Firma del token inválida", e);
+        }
     }
 
     public String extractUsername(String token) {
-        return getClaims(token).getSubject();
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(SECRET_KEY) // Asegúrate de que secretKey sea la correcta
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .getSubject();
+        } catch (SignatureException e) {
+            // Manejo de firma inválida
+            throw new IllegalArgumentException("Token inválido: firma no coincide", e);
+        }
     }
 
     private boolean isTokenExpired(String token) {
