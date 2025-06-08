@@ -80,6 +80,8 @@ tasks.named('test') {
 
 bootBuildImage {
     imageName = System.getenv('IMAGE_NAME') ?: "rapid-config-server:${project.version}"
+    // Builder ligero por defecto para minimizar el tamaño de la imagen
+    builder = System.getenv('BUILDER') ?: "paketobuildpacks/builder-jammy-tiny"
     if (System.getenv('REGISTRY_URL')) {
         publish = true
         docker {
