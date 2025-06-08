@@ -35,6 +35,14 @@ public class UserPermissionService {
         return userPermissionRepository.findByUserUsernameAndApplicationId(username, applicationId);
     }
 
+    public boolean hasOrganizationPermission(String username, Long organizationId) {
+        return userPermissionRepository.existsByUserUsernameAndOrganizationId(username, organizationId);
+    }
+
+    public boolean hasApplicationPermission(String username, Long applicationId) {
+        return userPermissionRepository.existsByUserUsernameAndApplicationId(username, applicationId);
+    }
+
     public UserPermission savePermission(UserPermission permission) {
         return userPermissionRepository.save(permission);
     }
