@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import com.saguro.rapid.configserver.components.JwtAuthenticationFilter;
 import org.springframework.cloud.config.environment.Environment;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -22,6 +23,9 @@ class ConfigControllerTest {
 
     @MockBean
     private DynamicConfigComponent dynamicConfigComponent;
+
+    @MockBean
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Test
     void getConfigReturnsEnvironment() throws Exception {

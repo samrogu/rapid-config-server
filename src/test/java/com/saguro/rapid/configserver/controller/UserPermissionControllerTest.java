@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.test.context.support.WithMockUser;
+import com.saguro.rapid.configserver.components.JwtAuthenticationFilter;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Collections;
@@ -31,7 +33,11 @@ class UserPermissionControllerTest {
     @MockBean
     private UserPermissionMapper userPermissionMapper;
 
+    @MockBean
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
+
     @Test
+    @WithMockUser(username = "user", roles = "USER")
     void getPermissionsByUsernameReturnsList() throws Exception {
         UserPermission permission = new UserPermission();
         permission.setId(1L);
