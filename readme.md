@@ -31,6 +31,7 @@ Se puede generar una imagen de contenedor nativa con la tarea `bootBuildImage` d
 Variables de entorno útiles:
 
 - `IMAGE_NAME`: nombre completo de la imagen (incluye el repositorio). Por defecto se usa `rapid-config-server:${version}`.
+- `BUILDER`: builder de Paketo a utilizar. Por defecto se emplea `paketobuildpacks/builder-jammy-tiny` para generar una imagen reducida.
 - `REGISTRY_URL`: URL del registro al que se publicará la imagen.
 - `REGISTRY_USERNAME` y `REGISTRY_PASSWORD`: credenciales para dicho registro.
 
@@ -38,6 +39,7 @@ Ejemplo de ejecución:
 
 ```bash
 IMAGE_NAME=tu-registro.com/rapid-config-server:1.0 \
+BUILDER=paketobuildpacks/builder-jammy-tiny \
 REGISTRY_URL=tu-registro.com \
 REGISTRY_USERNAME=usuario REGISTRY_PASSWORD=clave \
 ./gradlew bootBuildImage
