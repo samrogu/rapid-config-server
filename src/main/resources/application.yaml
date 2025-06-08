@@ -30,7 +30,16 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update  # Estrategia de actualización de esquema, puede ser 'none', 'create', 'create-drop', 'update' Dialecto de Hibernate para PostgreSQL
+    show-sql: false # Habilita el log de las consultas SQL
 
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
+
+configjwt:
+  appkey: "hItRXDBELO83t8ZnhqxOeJL0XHBh5HCJd9Tj5DHHsyR3JpGBi/PDt1h6rMuxrFGOpXAL/Dnl+jikpHPNwSE8tg==" # Valor predeterminado
+
+logging:
+  level:
+    root: info
+    com.saguro.rapid.configserver: WARN

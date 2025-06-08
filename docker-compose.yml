@@ -10,16 +10,29 @@ services:
       - "5432:5432"  # Exponemos el puerto 5432 para poder conectar desde la aplicación
     volumes:
       - postgres-datadt:/var/lib/postgresql/data  # Persistencia de los datos de PostgreSQL
+      - ./vault/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
   vault:
     image: hashicorp/vault:latest
-    environment:
-      VAULT_DEV_ROOT_TOKEN_ID: testtoken
+    container_name: vault
     ports:
       - 8200:8200
-    privileged: true
+    environment:
+      VAULT_ADDR: "http://0.0.0.0:8200" # Environment variable to access Vault
+      VAULT_DEV_ROOT_TOKEN_ID: testtoken
     volumes:
-      - vault-datadt:/vault/
+      - ./vault/vault.hcl:/vault/config/vault.hcl:ro # Mount your Vault configuration file
+    entrypoint: >
+      vault server -config=/vault/config/vault.hcl
+    cap_add:
+      - IPC_LOCK # Required to lock memory for security
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8200/v1/sys/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    depends_on:
+      - db
 
 volumes:
   postgres-datadt:
-  vault-datadt:

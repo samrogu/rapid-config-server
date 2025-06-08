@@ -1,7 +1,6 @@
 package com.saguro.rapid.configserver.controller;
 
 import com.saguro.rapid.configserver.dto.ApplicationDTO;
-import com.saguro.rapid.configserver.mapper.ApplicationMapper;
 import com.saguro.rapid.configserver.service.ApplicationService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.web.bind.annotation.*;
@@ -39,7 +38,7 @@ public class ApplicationController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteApplication(@PathVariable Long id) {
+    public void deleteApplication(@PathVariable("id") Long id) {
         applicationService.deleteApplication(id);
     }
 
