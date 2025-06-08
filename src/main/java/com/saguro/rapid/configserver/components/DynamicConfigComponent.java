@@ -125,7 +125,9 @@ public class DynamicConfigComponent {
                 logger.error("Invalid application name: {}", application);
                 throw new IllegalArgumentException("Invalid filename");
             }
-
+            if (profile.contains("..") || profile.contains("/") || profile.contains("\\")) {
+                throw new IllegalArgumentException("Invalid profile name");
+            }
             File tempDir = prepareTemporaryDirectory(label);
             Git git = cloneRepository(appEntity, tempDir, label);
 
@@ -160,10 +162,10 @@ public class DynamicConfigComponent {
     }
 
     private File findConfigFile(File tempDir, String application, String profile) {
-        logger.debug("Searching for configuration file in temporary directory: {}", tempDir.getAbsolutePath());
+        File controlledDir = tempDir.getAbsoluteFile();
         if (profile.equals("default")) {
             for (String ext : SUPPORTED_EXTENSIONS) {
-                File configFile = new File(tempDir, application + ext);
+                File configFile = new File(controlledDir, application + ext);
                 if (configFile.exists()) {
                     logger.info("Configuration file found: {}", configFile.getAbsolutePath());
                     return configFile;
@@ -171,7 +173,7 @@ public class DynamicConfigComponent {
             }
         } else {
             for (String ext : SUPPORTED_EXTENSIONS) {
-                File configFile = new File(tempDir, application + "-" + profile + ext);
+                File configFile = new File(controlledDir, application + "-" + profile + ext);
                 if (configFile.exists()) {
                     logger.info("Configuration file found: {}", configFile.getAbsolutePath());
                     return configFile;
