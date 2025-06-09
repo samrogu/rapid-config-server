@@ -38,7 +38,9 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-            .csrf(csrf -> csrf.ignoringRequestMatchers("/api/auth/**")) // Disable CSRF for specific endpoints if necessary
+            // CSRF protection is unnecessary for a stateless JWT based API
+            // and was causing 403 responses when no token was provided.
+            .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configure(http)); // Asumiendo que tienes config global para CORS
 
         return http.build();
