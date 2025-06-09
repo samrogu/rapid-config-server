@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true">
+    <!-- Use environment variables with sensible defaults -->
+    <springProperty scope="context" name="LOG_PATTERN" source="LOG_PATTERN" defaultValue="%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"/>
+    <springProperty scope="context" name="LOG_LEVEL_ROOT" source="LOG_LEVEL_ROOT" defaultValue="INFO"/>
+    <springProperty scope="context" name="LOG_LEVEL_APP" source="LOG_LEVEL_APP" defaultValue="DEBUG"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <root level="${LOG_LEVEL_ROOT}">
+        <appender-ref ref="CONSOLE" />
+    </root>
+
+    <logger name="com.saguro.rapid.configserver" level="${LOG_LEVEL_APP}"/>
+</configuration>
