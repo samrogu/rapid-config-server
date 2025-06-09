@@ -29,19 +29,6 @@ public class SecurityConfig {
 
     @Bean
     @Order(1)
-    public SecurityFilterChain configSecurity(HttpSecurity http) throws Exception {
-        http
-            .securityMatcher("/config/**") // Solo para rutas /config
-            .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
-            .httpBasic(Customizer.withDefaults()) // Basic Auth
-            .csrf(Customizer.withDefaults());
-
-        return http.build();
-    }
-
-
-    @Bean
-    @Order(2)
     public SecurityFilterChain apiSecurity(HttpSecurity http) throws Exception {
         http
             .securityMatcher("/api/**")
@@ -53,6 +40,18 @@ public class SecurityConfig {
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
             .csrf(csrf -> csrf.ignoringRequestMatchers("/api/auth/**")) // Disable CSRF for specific endpoints if necessary
             .cors(cors -> cors.configure(http)); // Asumiendo que tienes config global para CORS
+
+        return http.build();
+    }
+
+    @Bean
+    @Order(2)
+    public SecurityFilterChain configSecurity(HttpSecurity http) throws Exception {
+        http
+            .securityMatcher("/config/**") // Solo para rutas /config
+            .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+            .httpBasic(Customizer.withDefaults()) // Basic Auth
+            .csrf(Customizer.withDefaults());
 
         return http.build();
     }

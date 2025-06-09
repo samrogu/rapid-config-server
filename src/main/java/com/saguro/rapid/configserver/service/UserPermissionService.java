@@ -50,4 +50,8 @@ public class UserPermissionService {
     public void deletePermission(Long id) {
         userPermissionRepository.deleteById(id);
     }
+
+    public List<UserPermission> getAllPermissions() {
+        return userPermissionRepository.findAll();
+    }
 }

@@ -13,6 +13,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 @RestController
 @RequestMapping("/api/permissions")
@@ -33,7 +36,7 @@ public class UserPermissionController {
 
     private boolean isAdmin(Authentication authentication) {
         return authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+                .anyMatch(a -> a.getAuthority().equals("Admin"));
     }
 
     @GetMapping("/user/{username}")
@@ -72,8 +75,8 @@ public class UserPermissionController {
 
         return ResponseEntity.ok(userPermissionService.getPermissionsByApplication(applicationId));
     }
-
-    @PostMapping
+    
+    @PostMapping("/create")
     public ResponseEntity<UserPermissionDTO> createPermission(@RequestBody UserPermissionDTO userPermissionDTO) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (!isAdmin(auth)) {
@@ -94,5 +97,19 @@ public class UserPermissionController {
 
         userPermissionService.deletePermission(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping
+    public ResponseEntity<List<UserPermissionDTO>> getAllPermissions() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (!isAdmin(auth)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+
+        List<UserPermission> permissions = userPermissionService.getAllPermissions();
+        List<UserPermissionDTO> permissionDTOs = permissions.stream()
+                .map(userPermissionMapper::toDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(permissionDTOs);
     }
 }
