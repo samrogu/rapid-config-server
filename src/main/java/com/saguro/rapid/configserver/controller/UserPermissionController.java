@@ -83,8 +83,7 @@ public class UserPermissionController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
-        UserPermission userPermission = userPermissionMapper.toEntity(userPermissionDTO);
-        UserPermission savedPermission = userPermissionService.savePermission(userPermission);
+        UserPermission savedPermission = userPermissionService.createPermission(userPermissionDTO);
         return ResponseEntity.ok(userPermissionMapper.toDTO(savedPermission));
     }
 
