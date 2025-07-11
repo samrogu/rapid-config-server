@@ -41,5 +41,5 @@ configjwt:
 
 logging:
   level:
-    root: info
-    com.saguro.rapid.configserver: WARN
+    root: ${LOG_LEVEL_ROOT:info}
+    com.saguro.rapid.configserver: ${LOG_LEVEL_APP:warn}

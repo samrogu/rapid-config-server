@@ -44,6 +44,7 @@ dependencies {
 
     // Dependencias de Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     // Dependencias de JJWT
@@ -75,5 +76,21 @@ tasks.withType(JavaCompile).configureEach {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+bootBuildImage {
+    imageName = System.getenv('IMAGE_NAME') ?: "rapid-config-server:${project.version}"
+    // Builder ligero por defecto para minimizar el tamaño de la imagen
+    builder = System.getenv('BUILDER') ?: "paketobuildpacks/builder-jammy-tiny"
+    if (System.getenv('REGISTRY_URL')) {
+        publish = true
+        docker {
+            publishRegistry {
+                url = System.getenv('REGISTRY_URL')
+                username = System.getenv('REGISTRY_USERNAME')
+                password = System.getenv('REGISTRY_PASSWORD')
+            }
+        }
+    }
 }
 

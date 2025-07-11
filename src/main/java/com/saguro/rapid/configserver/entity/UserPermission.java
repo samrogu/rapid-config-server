@@ -22,4 +22,16 @@ public class UserPermission {
     @ManyToOne
     @JoinColumn(name = "application_id", nullable = true)
     private Application application;
+
+    @Column(nullable = false)
+    private boolean canRead = false;
+
+    @Column(nullable = false)
+    private boolean canCreate = false;
+
+    @Column(nullable = false)
+    private boolean canUpdate = false;
+
+    @Column(nullable = false)
+    private boolean canDelete = false;
 }

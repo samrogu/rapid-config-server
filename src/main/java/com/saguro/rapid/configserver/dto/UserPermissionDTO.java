@@ -8,4 +8,9 @@ public class UserPermissionDTO {
     private String username; // Nombre del usuario
     private Long organizationId; // ID de la organización
     private Long applicationId; // ID de la aplicación (puede ser null si aplica solo a la organización)
+
+    private boolean canRead;
+    private boolean canCreate;
+    private boolean canUpdate;
+    private boolean canDelete;
 }

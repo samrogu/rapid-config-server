@@ -28,7 +28,7 @@ public class UserInitializer implements CommandLineRunner {
     public void run(String... args) throws Exception {
         String defaultUsername = "admin";
         String defaultPassword = "admin";
-        String defaultRoleName = "ROLE_ADMIN";
+        String defaultRoleName = "Admin";
 
         // Verificar si el rol por defecto ya existe, si no, crearlo
         Role defaultRole = roleRepository.findByName(defaultRoleName)

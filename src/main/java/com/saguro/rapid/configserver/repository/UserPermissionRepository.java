@@ -23,4 +23,8 @@ public interface UserPermissionRepository extends JpaRepository<UserPermission, 
 
     // Buscar permisos por usuario y aplicación
     List<UserPermission> findByUserUsernameAndApplicationId(String username, Long applicationId);
+
+    boolean existsByUserUsernameAndOrganizationId(String username, Long organizationId);
+
+    boolean existsByUserUsernameAndApplicationId(String username, Long applicationId);
 }
