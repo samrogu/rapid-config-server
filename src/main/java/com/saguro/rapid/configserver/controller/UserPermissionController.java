@@ -37,7 +37,7 @@ public class UserPermissionController {
     }
 
     @GetMapping("/application/{applicationId}")
-    public ResponseEntity<List<UserPermission>> getPermissionsByApplication(@PathVariable("organizationId") Long applicationId) {
+    public ResponseEntity<List<UserPermission>> getPermissionsByApplication(@PathVariable("applicationId") Long applicationId) {
         return ResponseEntity.ok(userPermissionService.getPermissionsByApplication(applicationId));
     }
 
