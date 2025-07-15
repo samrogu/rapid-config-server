@@ -4,11 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.saguro.rapid.configserver.dto.OrganizationDTO;
 import com.saguro.rapid.configserver.service.OrganizationService;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import com.saguro.rapid.configserver.components.JwtAuthenticationFilter;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -27,10 +27,10 @@ class OrganizationControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
+    @Mock
     private OrganizationService organizationService;
 
-    @MockBean
+    @Mock
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Test

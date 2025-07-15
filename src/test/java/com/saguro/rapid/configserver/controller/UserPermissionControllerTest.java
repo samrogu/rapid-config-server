@@ -5,6 +5,7 @@ import com.saguro.rapid.configserver.entity.UserPermission;
 import com.saguro.rapid.configserver.mapper.UserPermissionMapper;
 import com.saguro.rapid.configserver.service.UserPermissionService;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -27,13 +28,13 @@ class UserPermissionControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @Mock
     private UserPermissionService userPermissionService;
 
-    @MockBean
+    @Mock
     private UserPermissionMapper userPermissionMapper;
 
-    @MockBean
+    @Mock
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Test

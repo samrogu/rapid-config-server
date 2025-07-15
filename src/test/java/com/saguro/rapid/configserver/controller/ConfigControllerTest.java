@@ -2,11 +2,11 @@ package com.saguro.rapid.configserver.controller;
 
 import com.saguro.rapid.configserver.components.DynamicConfigComponent;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import com.saguro.rapid.configserver.components.JwtAuthenticationFilter;
 import org.springframework.cloud.config.environment.Environment;
 import org.springframework.test.web.servlet.MockMvc;
@@ -21,10 +21,10 @@ class ConfigControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @Mock
     private DynamicConfigComponent dynamicConfigComponent;
 
-    @MockBean
+    @Mock
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Test

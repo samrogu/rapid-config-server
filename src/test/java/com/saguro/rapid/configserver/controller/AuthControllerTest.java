@@ -6,11 +6,11 @@ import com.saguro.rapid.configserver.dto.LoginResponse;
 import com.saguro.rapid.configserver.dto.UserInfo;
 import com.saguro.rapid.configserver.service.AuthService;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import com.saguro.rapid.configserver.components.JwtAuthenticationFilter;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -30,10 +30,10 @@ class AuthControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
+    @Mock
     private AuthService authService;
 
-    @MockBean
+    @Mock
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Test
