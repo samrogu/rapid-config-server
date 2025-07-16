@@ -3,6 +3,11 @@ package com.saguro.rapid.configserver.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.saguro.rapid.configserver.dto.ApplicationDTO;
 import com.saguro.rapid.configserver.service.ApplicationService;
+import com.saguro.rapid.configserver.service.UserPermissionService;
+import com.saguro.rapid.configserver.entity.UserPermission;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -28,12 +33,21 @@ class ApplicationControllerTest {
     @Mock
     private ApplicationService applicationService;
 
+    @Mock
+    private UserPermissionService userPermissionService;
+
     @InjectMocks
     private ApplicationController controller;
 
     @BeforeEach
     void setup() {
         MockitoAnnotations.openMocks(this);
+        var auth = new UsernamePasswordAuthenticationToken(
+            "user",
+            "N/A",
+            java.util.List.of(new SimpleGrantedAuthority("Admin"))
+        );
+        SecurityContextHolder.getContext().setAuthentication(auth);
         // Construimos MockMvc en modo standalone, sin arrancar Spring
         mockMvc = MockMvcBuilders
             .standaloneSetup(controller)
@@ -48,6 +62,10 @@ class ApplicationControllerTest {
 
         when(applicationService.getAllApplications())
             .thenReturn(Collections.singletonList(dto));
+        UserPermission perm = new UserPermission();
+        perm.setCanRead(true);
+        when(userPermissionService.getPermissionsByUsername("user"))
+            .thenReturn(Collections.singletonList(perm));
 
         mockMvc.perform(get("/api/applications"))
                .andExpect(status().isOk())
@@ -63,6 +81,7 @@ class ApplicationControllerTest {
 
         when(applicationService.createApplication(eq(2L), any(ApplicationDTO.class)))
             .thenReturn(dto);
+        when(userPermissionService.canCreateApplication("user", 2L)).thenReturn(true);
 
         mockMvc.perform(post("/api/applications/organization/2")
                 .contentType(APPLICATION_JSON)
