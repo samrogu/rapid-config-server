@@ -48,3 +48,23 @@ REGISTRY_USERNAME=usuario REGISTRY_PASSWORD=clave \
 ```
 
 Si se define `REGISTRY_URL`, la tarea publicará la imagen automáticamente en ese repositorio.
+
+### Compilación local
+
+El wrapper de Gradle (`./gradlew`) descarga la distribución de Gradle y todas
+las dependencias la primera vez que se ejecuta. Por ello es necesario contar
+con acceso a Internet o con un repositorio local de dependencias. En entornos
+sin conexión o con proxy restringido se producirá un error de descarga y la
+compilación fallará.
+
+Para compilar el proyecto únicamente ejecuta:
+
+```bash
+./gradlew build
+```
+
+Y para generar la imagen nativa en un contenedor:
+
+```bash
+./gradlew bootBuildImage -Pnative
+```
