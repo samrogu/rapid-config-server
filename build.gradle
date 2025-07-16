@@ -92,11 +92,11 @@ graalvmNative {
             buildArgs.addAll(
                 '--no-fallback',
                 '--initialize-at-build-time=org.slf4j.LoggerFactory,ch.qos.logback,org.hibernate,com.sun.jmx,javax.management',
-                '--initialize-at-build-time=org.apache.sshd.sftp.client.fs.SftpFileSystemProvider',
+                '--initialize-at-build-time=org.apache.sshd',
                 '--initialize-at-run-time=io.netty,org.springframework.data.jpa.repository.support',
                 '-H:+ReportExceptionStackTraces',
                 '-H:+PrintClassInitialization',
-                '--enable-url-protocols=http,https,sftp',
+                '--enable-url-protocols=http,https',
                 '--enable-all-security-services',
                 '-H:+AddAllCharsets',
                 '--allow-incomplete-classpath'
