@@ -59,6 +59,31 @@ public class UserPermissionService {
         return userPermissionRepository.existsByUserUsernameAndApplicationId(username, applicationId);
     }
 
+    public boolean canReadApplication(String username, Long applicationId) {
+        return userPermissionRepository
+                .existsByUserUsernameAndApplicationIdAndCanReadTrue(username, applicationId);
+    }
+
+    public boolean canCreateApplication(String username, Long organizationId) {
+        return userPermissionRepository
+                .existsByUserUsernameAndOrganizationIdAndCanCreateTrue(username, organizationId);
+    }
+
+    public boolean canUpdateApplication(String username, Long applicationId) {
+        return userPermissionRepository
+                .existsByUserUsernameAndApplicationIdAndCanUpdateTrue(username, applicationId);
+    }
+
+    public boolean canDeleteApplication(String username, Long applicationId) {
+        return userPermissionRepository
+                .existsByUserUsernameAndApplicationIdAndCanDeleteTrue(username, applicationId);
+    }
+
+    public boolean canReadOrganization(String username, Long organizationId) {
+        return userPermissionRepository
+                .existsByUserUsernameAndOrganizationIdAndCanReadTrue(username, organizationId);
+    }
+
     public UserPermission savePermission(UserPermission permission) {
         return userPermissionRepository.save(permission);
     }
