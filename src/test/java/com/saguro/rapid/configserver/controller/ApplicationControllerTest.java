@@ -5,6 +5,7 @@ import com.saguro.rapid.configserver.dto.ApplicationDTO;
 import com.saguro.rapid.configserver.service.ApplicationService;
 import com.saguro.rapid.configserver.service.UserPermissionService;
 import com.saguro.rapid.configserver.entity.UserPermission;
+import com.saguro.rapid.configserver.entity.Permission;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -63,7 +64,9 @@ class ApplicationControllerTest {
         when(applicationService.getAllApplications())
             .thenReturn(Collections.singletonList(dto));
         UserPermission perm = new UserPermission();
-        perm.setCanRead(true);
+        Permission appPerm = new Permission();
+        appPerm.setCanRead(true);
+        perm.setApplicationPermission(appPerm);
         when(userPermissionService.getPermissionsByUsername("user"))
             .thenReturn(Collections.singletonList(perm));
 

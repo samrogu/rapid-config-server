@@ -41,7 +41,8 @@ public class ApplicationController {
         String current = getCurrentUsername();
         boolean hasRead = userPermissionService.getPermissionsByUsername(current)
                 .stream()
-                .anyMatch(UserPermission::isCanRead);
+                .anyMatch(p -> (p.getApplicationPermission() != null && p.getApplicationPermission().isCanRead()) ||
+                               (p.getOrganizationPermission() != null && p.getOrganizationPermission().isCanRead()));
 
         if (!isAdmin(auth) && !hasRead) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);

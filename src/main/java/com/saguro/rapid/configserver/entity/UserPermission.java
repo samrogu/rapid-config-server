@@ -1,7 +1,9 @@
 package com.saguro.rapid.configserver.entity;
 
+import com.saguro.rapid.configserver.converter.PermissionConverter;
 import jakarta.persistence.*;
 import lombok.Data;
+import com.saguro.rapid.configserver.entity.Permission;
 
 @Data
 @Entity
@@ -23,15 +25,11 @@ public class UserPermission {
     @JoinColumn(name = "application_id", nullable = true)
     private Application application;
 
-    @Column(nullable = false)
-    private boolean canRead = false;
+    @Convert(converter = PermissionConverter.class)
+    @Column(columnDefinition = "TEXT")
+    private Permission organizationPermission;
 
-    @Column(nullable = false)
-    private boolean canCreate = false;
-
-    @Column(nullable = false)
-    private boolean canUpdate = false;
-
-    @Column(nullable = false)
-    private boolean canDelete = false;
+    @Convert(converter = PermissionConverter.class)
+    @Column(columnDefinition = "TEXT")
+    private Permission applicationPermission;
 }

@@ -3,11 +3,13 @@ package com.saguro.rapid.configserver.service;
 import com.saguro.rapid.configserver.entity.User;
 import com.saguro.rapid.configserver.entity.Organization;
 import com.saguro.rapid.configserver.entity.Application;
+import com.saguro.rapid.configserver.entity.Permission;
 import com.saguro.rapid.configserver.entity.UserPermission;
 import com.saguro.rapid.configserver.repository.UserRepository;
 import com.saguro.rapid.configserver.repository.OrganizationRepository;
 import com.saguro.rapid.configserver.repository.ApplicationRepository;
 import com.saguro.rapid.configserver.repository.UserPermissionRepository;
+import com.saguro.rapid.configserver.dto.PermissionDTO;
 import com.saguro.rapid.configserver.dto.UserPermissionDTO;
 import org.springframework.stereotype.Service;
 
@@ -61,27 +63,37 @@ public class UserPermissionService {
 
     public boolean canReadApplication(String username, Long applicationId) {
         return userPermissionRepository
-                .existsByUserUsernameAndApplicationIdAndCanReadTrue(username, applicationId);
+                .findByUserUsernameAndApplicationId(username, applicationId)
+                .stream()
+                .anyMatch(p -> p.getApplicationPermission() != null && p.getApplicationPermission().isCanRead());
     }
 
     public boolean canCreateApplication(String username, Long organizationId) {
         return userPermissionRepository
-                .existsByUserUsernameAndOrganizationIdAndCanCreateTrue(username, organizationId);
+                .findByUserUsernameAndOrganizationId(username, organizationId)
+                .stream()
+                .anyMatch(p -> p.getOrganizationPermission() != null && p.getOrganizationPermission().isCanCreate());
     }
 
     public boolean canUpdateApplication(String username, Long applicationId) {
         return userPermissionRepository
-                .existsByUserUsernameAndApplicationIdAndCanUpdateTrue(username, applicationId);
+                .findByUserUsernameAndApplicationId(username, applicationId)
+                .stream()
+                .anyMatch(p -> p.getApplicationPermission() != null && p.getApplicationPermission().isCanUpdate());
     }
 
     public boolean canDeleteApplication(String username, Long applicationId) {
         return userPermissionRepository
-                .existsByUserUsernameAndApplicationIdAndCanDeleteTrue(username, applicationId);
+                .findByUserUsernameAndApplicationId(username, applicationId)
+                .stream()
+                .anyMatch(p -> p.getApplicationPermission() != null && p.getApplicationPermission().isCanDelete());
     }
 
     public boolean canReadOrganization(String username, Long organizationId) {
         return userPermissionRepository
-                .existsByUserUsernameAndOrganizationIdAndCanReadTrue(username, organizationId);
+                .findByUserUsernameAndOrganizationId(username, organizationId)
+                .stream()
+                .anyMatch(p -> p.getOrganizationPermission() != null && p.getOrganizationPermission().isCanRead());
     }
 
     public UserPermission savePermission(UserPermission permission) {
@@ -105,10 +117,30 @@ public class UserPermissionService {
         permission.setUser(user);
         permission.setOrganization(organization);
         permission.setApplication(application);
-        permission.setCanRead(dto.isCanRead());
-        permission.setCanCreate(dto.isCanCreate());
-        permission.setCanUpdate(dto.isCanUpdate());
-        permission.setCanDelete(dto.isCanDelete());
+
+        Permission orgPerm = null;
+        if (dto.getOrganizationPermission() != null) {
+            PermissionDTO op = dto.getOrganizationPermission();
+            orgPerm = new Permission();
+            orgPerm.setCanManage(op.isCanManage());
+            orgPerm.setCanRead(op.isCanRead());
+            orgPerm.setCanCreate(op.isCanCreate());
+            orgPerm.setCanUpdate(op.isCanUpdate());
+            orgPerm.setCanDelete(op.isCanDelete());
+        }
+        Permission appPerm = null;
+        if (dto.getApplicationPermission() != null) {
+            PermissionDTO ap = dto.getApplicationPermission();
+            appPerm = new Permission();
+            appPerm.setCanManage(ap.isCanManage());
+            appPerm.setCanRead(ap.isCanRead());
+            appPerm.setCanCreate(ap.isCanCreate());
+            appPerm.setCanUpdate(ap.isCanUpdate());
+            appPerm.setCanDelete(ap.isCanDelete());
+        }
+
+        permission.setOrganizationPermission(orgPerm);
+        permission.setApplicationPermission(appPerm);
 
         return userPermissionRepository.save(permission);
     }

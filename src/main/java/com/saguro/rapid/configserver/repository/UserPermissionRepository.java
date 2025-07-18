@@ -27,16 +27,4 @@ public interface UserPermissionRepository extends JpaRepository<UserPermission, 
     boolean existsByUserUsernameAndOrganizationId(String username, Long organizationId);
 
     boolean existsByUserUsernameAndApplicationId(String username, Long applicationId);
-
-    boolean existsByUserUsernameAndApplicationIdAndCanReadTrue(String username, Long applicationId);
-
-    boolean existsByUserUsernameAndApplicationIdAndCanCreateTrue(String username, Long applicationId);
-
-    boolean existsByUserUsernameAndApplicationIdAndCanUpdateTrue(String username, Long applicationId);
-
-    boolean existsByUserUsernameAndApplicationIdAndCanDeleteTrue(String username, Long applicationId);
-
-    boolean existsByUserUsernameAndOrganizationIdAndCanReadTrue(String username, Long organizationId);
-
-    boolean existsByUserUsernameAndOrganizationIdAndCanCreateTrue(String username, Long organizationId);
 }
