@@ -20,6 +20,7 @@ spring:
           searchPaths: # Si quieres especificar rutas por defecto
             - "config-repo"
   datasource:
+    #url: jdbc:postgresql://192.168.1.98:5432/your_db  # Cambia 'your_db' al nombre de tu base de datos
     url: jdbc:postgresql://localhost:5432/your_db  # Cambia 'your_db' al nombre de tu base de datos
     username: your_user  # Tu nombre de usuario de PostgreSQL
     password: your_password  # Tu contraseña de PostgreSQL

@@ -1,15 +1,15 @@
 services:
   db:
-    image: postgres:latest  # Usamos la imagen oficial de PostgreSQL
+    image: postgres:16.1-alpine # Usamos la imagen oficial de PostgreSQL
     container_name: postgres-db
     environment:
-      POSTGRES_USER: your_user  # El nombre de usuario para PostgreSQL
-      POSTGRES_PASSWORD: your_password  # La contraseña para el usuario de PostgreSQL
-      POSTGRES_DB: your_db  # El nombre de la base de datos que se creará
+      POSTGRES_USER: your_user # El nombre de usuario para PostgreSQL
+      POSTGRES_PASSWORD: your_password # La contraseña para el usuario de PostgreSQL
+      POSTGRES_DB: your_db # El nombre de la base de datos que se creará
     ports:
-      - "5432:5432"  # Exponemos el puerto 5432 para poder conectar desde la aplicación
+      - "5432:5432" # Exponemos el puerto 5432 para poder conectar desde la aplicación
     volumes:
-      - postgres-datadt:/var/lib/postgresql/data  # Persistencia de los datos de PostgreSQL
+      - postgres-datadt:/var/lib/postgresql/data # Persistencia de los datos de PostgreSQL
       - ./vault/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
   vault:
     image: hashicorp/vault:latest
@@ -26,7 +26,7 @@ services:
     cap_add:
       - IPC_LOCK # Required to lock memory for security
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://127.0.0.1:8200/v1/sys/health"]
+      test: [ "CMD", "curl", "-f", "http://127.0.0.1:8200/v1/sys/health" ]
       interval: 10s
       timeout: 5s
       retries: 5

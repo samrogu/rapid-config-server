@@ -8,6 +8,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,6 +30,9 @@ public interface OrganizationMapper {
 
     // Método para mapear de List<String> a List<UserPermission>
     default List<UserPermission> mapStringsToPermissions(List<String> usernames) {
+        if (usernames == null || usernames.isEmpty()) {
+            return new ArrayList<>();
+        }
         return usernames.stream()
                 .map(username -> {
                     User user = new User();

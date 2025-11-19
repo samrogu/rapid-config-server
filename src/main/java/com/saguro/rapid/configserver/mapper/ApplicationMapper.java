@@ -31,6 +31,9 @@ public interface ApplicationMapper {
 
     // Método para mapear de List<String> a List<UserPermission>
     default List<UserPermission> mapStringsToPermissions(List<String> usernames) {
+        if (usernames == null) {
+            return java.util.Collections.emptyList();
+        }
         return usernames.stream()
                 .map(username -> {
                     User user = new User();

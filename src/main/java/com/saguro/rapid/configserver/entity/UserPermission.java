@@ -24,6 +24,9 @@ public class UserPermission {
     private Application application;
 
     @Column(nullable = false)
+    private boolean canManage = false; // Permiso para gestionar la organización or aplicación
+
+    @Column(nullable = false)
     private boolean canRead = false;
 
     @Column(nullable = false)
