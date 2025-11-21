@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.saguro.rapid.configserver.dto.ApplicationDTO;
 import com.saguro.rapid.configserver.service.ApplicationService;
 import com.saguro.rapid.configserver.service.UserPermissionService;
-import com.saguro.rapid.configserver.entity.UserPermission;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -43,15 +42,14 @@ class ApplicationControllerTest {
     void setup() {
         MockitoAnnotations.openMocks(this);
         var auth = new UsernamePasswordAuthenticationToken(
-            "user",
-            "N/A",
-            java.util.List.of(new SimpleGrantedAuthority("Admin"))
-        );
+                "user",
+                "N/A",
+                java.util.List.of(new SimpleGrantedAuthority("Admin")));
         SecurityContextHolder.getContext().setAuthentication(auth);
         // Construimos MockMvc en modo standalone, sin arrancar Spring
         mockMvc = MockMvcBuilders
-            .standaloneSetup(controller)
-            .build();
+                .standaloneSetup(controller)
+                .build();
     }
 
     @Test
@@ -60,18 +58,20 @@ class ApplicationControllerTest {
         dto.setId(1L);
         dto.setName("App");
 
-        when(applicationService.getAllApplications())
-            .thenReturn(Collections.singletonList(dto));
-        UserPermission perm = new UserPermission();
-        perm.setCanRead(true);
-        when(userPermissionService.getPermissionsByUsername("user"))
-            .thenReturn(Collections.singletonList(perm));
+        // Mock getApplicationsForUser instead of getAllApplications
+        when(applicationService.getApplicationsForUser(any(), any()))
+                .thenReturn(Collections.singletonList(dto));
 
-        mockMvc.perform(get("/api/applications"))
-               .andExpect(status().isOk())
-               .andExpect(content().contentType(APPLICATION_JSON))
-               .andExpect(jsonPath("$[0].id").value(1))
-               .andExpect(jsonPath("$[0].name").value("App"));
+        // Mock Authentication
+        org.springframework.security.core.Authentication auth = org.mockito.Mockito
+                .mock(org.springframework.security.core.Authentication.class);
+        when(auth.getName()).thenReturn("user");
+
+        mockMvc.perform(get("/api/applications").principal(auth))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(APPLICATION_JSON))
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].name").value("App"));
     }
 
     @Test
@@ -80,14 +80,23 @@ class ApplicationControllerTest {
         dto.setName("App");
 
         when(applicationService.createApplication(eq(2L), any(ApplicationDTO.class)))
-            .thenReturn(dto);
-        when(userPermissionService.canCreateApplication("user", 2L)).thenReturn(true);
+                .thenReturn(dto);
+
+        // Mock Authentication
+        org.springframework.security.core.Authentication auth = org.mockito.Mockito
+                .mock(org.springframework.security.core.Authentication.class);
+        when(auth.getName()).thenReturn("user");
+
+        // Mock permission check
+        when(userPermissionService.canCreateApplication(any(org.springframework.security.core.Authentication.class),
+                eq(2L))).thenReturn(true);
 
         mockMvc.perform(post("/api/applications/organization/2")
+                .principal(auth)
                 .contentType(APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
-               .andExpect(status().isOk())
-               .andExpect(content().contentType(APPLICATION_JSON))
-               .andExpect(jsonPath("$.name").value("App"));
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(APPLICATION_JSON))
+                .andExpect(jsonPath("$.name").value("App"));
     }
 }

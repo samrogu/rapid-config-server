@@ -172,7 +172,11 @@ public class DynamicConfigComponent {
 
     private File prepareTemporaryDirectory(String label) throws IOException {
         // Create a unique temporary directory to avoid race conditions
-        File tempDir = Files.createTempDirectory("config-repo-" + label).toFile();
+        java.nio.file.attribute.FileAttribute<Set<java.nio.file.attribute.PosixFilePermission>> attrs = java.nio.file.attribute.PosixFilePermissions
+                .asFileAttribute(
+                        java.nio.file.attribute.PosixFilePermissions.fromString("rwx------"));
+
+        File tempDir = Files.createTempDirectory("config-repo-" + label, attrs).toFile();
         logger.debug("Temporary directory prepared: {}", tempDir.getAbsolutePath());
         return tempDir;
     }

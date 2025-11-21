@@ -37,7 +37,11 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui.html", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                // CSRF protection is unnecessary for a stateless JWT based API
+                // CSRF protection is disabled because this API is stateless and uses JWT for
+                // authentication.
+                // Since the browser does not automatically include the JWT in requests (unlike
+                // cookies),
+                // the API is not vulnerable to CSRF attacks.
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults());
 

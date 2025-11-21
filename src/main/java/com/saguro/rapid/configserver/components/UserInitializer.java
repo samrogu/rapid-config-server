@@ -25,10 +25,12 @@ public class UserInitializer implements CommandLineRunner {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @org.springframework.beans.factory.annotation.Value("${rapid.security.admin.password:admin}")
+    private String defaultPassword;
+
     @Override
     public void run(String... args) throws Exception {
         String defaultUsername = "admin";
-        String defaultPassword = "admin";
         String defaultRoleName = "Admin";
 
         // Verificar si el rol por defecto ya existe, si no, crearlo

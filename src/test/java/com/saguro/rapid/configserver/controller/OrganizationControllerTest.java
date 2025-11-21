@@ -28,6 +28,9 @@ class OrganizationControllerTest {
     @Mock
     private OrganizationService organizationService;
 
+    @Mock
+    private com.saguro.rapid.configserver.service.UserPermissionService userPermissionService;
+
     @InjectMocks
     private OrganizationController controller;
 
@@ -35,9 +38,9 @@ class OrganizationControllerTest {
     void setup() {
         MockitoAnnotations.openMocks(this);
         mockMvc = MockMvcBuilders
-            .standaloneSetup(controller)
-            .setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
-            .build();
+                .standaloneSetup(controller)
+                .setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
+                .build();
     }
 
     @Test
@@ -46,13 +49,24 @@ class OrganizationControllerTest {
         dto.setId(1L);
         dto.setName("Org");
 
-        when(organizationService.getAllOrganizations())
-            .thenReturn(Collections.singletonList(dto));
+        when(organizationService.getOrganizationsForUser(any(), any()))
+                .thenReturn(Collections.singletonList(dto));
 
-        mockMvc.perform(get("/api/organizations"))
-               .andExpect(status().isOk())
-               .andExpect(jsonPath("$[0].id").value(1))
-               .andExpect(jsonPath("$[0].name").value("Org"));
+        // Mock permission check for getOrganizationsForUser inside controller is not
+        // needed
+        // because the controller delegates to service directly for filtering.
+        // But wait, the controller calls
+        // organizationService.getOrganizationsForUser(username, userPermissionService)
+
+        // Create a mock Authentication
+        org.springframework.security.core.Authentication auth = org.mockito.Mockito
+                .mock(org.springframework.security.core.Authentication.class);
+        when(auth.getName()).thenReturn("user");
+
+        mockMvc.perform(get("/api/organizations").principal(auth))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].name").value("Org"));
     }
 
     @Test
@@ -60,15 +74,16 @@ class OrganizationControllerTest {
         OrganizationDTO dto = new OrganizationDTO();
         dto.setName("Org");
 
-        // Usamos any(OrganizationDTO.class) para que el mock capture cualquier DTO entrante
+        // Usamos any(OrganizationDTO.class) para que el mock capture cualquier DTO
+        // entrante
         when(organizationService.createOrganization(any(OrganizationDTO.class)))
-            .thenReturn(dto);
+                .thenReturn(dto);
 
         mockMvc.perform(post("/api/organizations")
                 .contentType(APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
-               .andExpect(status().isOk())
-               // ahora sí encontrará el campo name en el body
-               .andExpect(jsonPath("$.name").value("Org"));
+                .andExpect(status().isOk())
+                // ahora sí encontrará el campo name en el body
+                .andExpect(jsonPath("$.name").value("Org"));
     }
 }
