@@ -36,6 +36,7 @@ dependencies {
 
     // Dependencia de PostgreSQL
     runtimeOnly 'org.postgresql:postgresql'
+    implementation 'org.liquibase:liquibase-core'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
 
     // Dependencias de Lombok

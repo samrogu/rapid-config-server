@@ -22,9 +22,9 @@ public class UserPermissionService {
     private final ApplicationRepository applicationRepository;
 
     public UserPermissionService(UserPermissionRepository userPermissionRepository,
-                                 UserRepository userRepository,
-                                 OrganizationRepository organizationRepository,
-                                 ApplicationRepository applicationRepository) {
+            UserRepository userRepository,
+            OrganizationRepository organizationRepository,
+            ApplicationRepository applicationRepository) {
         this.userPermissionRepository = userPermissionRepository;
         this.userRepository = userRepository;
         this.organizationRepository = organizationRepository;
@@ -33,6 +33,15 @@ public class UserPermissionService {
 
     public List<UserPermission> getPermissionsByUsername(String username) {
         return userPermissionRepository.findByUserUsername(username);
+    }
+
+    public boolean isAdmin(String username) {
+        User user = userRepository.findByUsername(username).orElse(null);
+        if (user == null) {
+            return false;
+        }
+        return user.getRoles().stream()
+                .anyMatch(role -> "Admin".equals(role.getName()));
     }
 
     public List<UserPermission> getPermissionsByOrganization(Long organizationId) {
@@ -64,9 +73,19 @@ public class UserPermissionService {
                 .existsByUserUsernameAndApplicationIdAndCanReadTrue(username, applicationId);
     }
 
+    public boolean canReadApplication(org.springframework.security.core.Authentication authentication,
+            Long applicationId) {
+        return canReadApplication(authentication.getName(), applicationId);
+    }
+
     public boolean canCreateApplication(String username, Long organizationId) {
         return userPermissionRepository
                 .existsByUserUsernameAndOrganizationIdAndCanCreateTrue(username, organizationId);
+    }
+
+    public boolean canCreateApplication(org.springframework.security.core.Authentication authentication,
+            Long organizationId) {
+        return canCreateApplication(authentication.getName(), organizationId);
     }
 
     public boolean canUpdateApplication(String username, Long applicationId) {
@@ -74,14 +93,32 @@ public class UserPermissionService {
                 .existsByUserUsernameAndApplicationIdAndCanUpdateTrue(username, applicationId);
     }
 
+    public boolean canUpdateApplication(org.springframework.security.core.Authentication authentication,
+            Long applicationId) {
+        return canUpdateApplication(authentication.getName(), applicationId);
+    }
+
     public boolean canDeleteApplication(String username, Long applicationId) {
         return userPermissionRepository
                 .existsByUserUsernameAndApplicationIdAndCanDeleteTrue(username, applicationId);
     }
 
+    public boolean canDeleteApplication(org.springframework.security.core.Authentication authentication,
+            Long applicationId) {
+        return canDeleteApplication(authentication.getName(), applicationId);
+    }
+
     public boolean canReadOrganization(String username, Long organizationId) {
-        return userPermissionRepository
-                .existsByUserUsernameAndOrganizationIdAndCanReadTrue(username, organizationId);
+        // Check if user has any permission (organization-level or application-level)
+        // for this organization
+        List<UserPermission> permissions = userPermissionRepository.findByUserUsernameAndOrganizationId(username,
+                organizationId);
+        return !permissions.isEmpty() && permissions.stream().anyMatch(UserPermission::isCanRead);
+    }
+
+    public boolean canReadOrganization(org.springframework.security.core.Authentication authentication,
+            Long organizationId) {
+        return canReadOrganization(authentication.getName(), organizationId);
     }
 
     public UserPermission savePermission(UserPermission permission) {

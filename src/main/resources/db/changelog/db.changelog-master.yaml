@@ -1,0 +1,296 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1-organizations
+      author: saguro
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            tableExists:
+              tableName: organizations
+      changes:
+        - createTable:
+            tableName: organizations
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: contact_email
+                  type: VARCHAR(255)
+  - changeSet:
+      id: 1-applications
+      author: saguro
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            tableExists:
+              tableName: applications
+      changes:
+        - createTable:
+            tableName: applications
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: organization_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_applications_organization
+                    references: organizations(id)
+              - column:
+                  name: git_uri
+                  type: VARCHAR(255)
+              - column:
+                  name: git_search_paths
+                  type: VARCHAR(255)
+              - column:
+                  name: vault_mount_path
+                  type: VARCHAR(255)
+              - column:
+                  name: vault_role_id
+                  type: VARCHAR(255)
+              - column:
+                  name: vault_secret_id
+                  type: VARCHAR(255)
+              - column:
+                  name: vault_schema
+                  type: VARCHAR(255)
+              - column:
+                  name: vault_port
+                  type: INT
+  - changeSet:
+      id: 1-roles
+      author: saguro
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            tableExists:
+              tableName: roles
+      changes:
+        - createTable:
+            tableName: roles
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: is_editable
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+  - changeSet:
+      id: 1-users
+      author: saguro
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            tableExists:
+              tableName: users
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: username
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: password
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+  - changeSet:
+      id: 1-user_roles
+      author: saguro
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            tableExists:
+              tableName: user_roles
+      changes:
+        - createTable:
+            tableName: user_roles
+            columns:
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_user_roles_user
+                    references: users(id)
+              - column:
+                  name: role_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_user_roles_role
+                    references: roles(id)
+  - changeSet:
+      id: 1-user_permissions
+      author: saguro
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            tableExists:
+              tableName: user_permissions
+      changes:
+        - createTable:
+            tableName: user_permissions
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_user_permissions_user
+                    references: users(id)
+              - column:
+                  name: application_id
+                  type: BIGINT
+                  constraints:
+                    foreignKeyName: fk_user_permissions_application
+                    references: applications(id)
+              - column:
+                  name: organization_id
+                  type: BIGINT
+                  constraints:
+                    foreignKeyName: fk_user_permissions_organization
+                    references: organizations(id)
+              - column:
+                  name: can_read
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: can_create
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: can_update
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: can_delete
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 2-add-vault-fields-applications
+      author: saguro
+      preConditions:
+        - onFail: MARK_RAN
+          and:
+            - tableExists:
+                tableName: applications
+            - not:
+                columnExists:
+                  tableName: applications
+                  columnName: vault_schema
+      changes:
+        - addColumn:
+            tableName: applications
+            columns:
+              - column:
+                  name: vault_schema
+                  type: VARCHAR(255)
+              - column:
+                  name: vault_port
+                  type: INT
+
+  - changeSet:
+      id: 2-add-is-editable-roles
+      author: saguro
+      preConditions:
+        - onFail: MARK_RAN
+          and:
+            - tableExists:
+                tableName: roles
+            - not:
+                columnExists:
+                  tableName: roles
+                  columnName: is_editable
+      changes:
+        - addColumn:
+            tableName: roles
+            columns:
+              - column:
+                  name: is_editable
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 3-set-admin-role-non-editable
+      author: saguro
+      preConditions:
+        - onFail: MARK_RAN
+          and:
+            - tableExists:
+                tableName: roles
+            - columnExists:
+                tableName: roles
+                columnName: is_editable
+      changes:
+        - update:
+            tableName: roles
+            columns:
+              - column:
+                  name: is_editable
+                  valueBoolean: false
+            where: "name = 'Admin'"

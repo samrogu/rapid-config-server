@@ -3,6 +3,7 @@ package com.saguro.rapid.configserver.service;
 import com.saguro.rapid.configserver.dto.CountDTO;
 import com.saguro.rapid.configserver.dto.OrganizationDTO;
 import com.saguro.rapid.configserver.entity.Organization;
+import com.saguro.rapid.configserver.entity.UserPermission;
 import com.saguro.rapid.configserver.mapper.OrganizationMapper;
 import com.saguro.rapid.configserver.repository.ApplicationRepository;
 import com.saguro.rapid.configserver.repository.OrganizationRepository;
@@ -18,7 +19,8 @@ public class OrganizationService {
     private final OrganizationMapper organizationMapper;
     private final ApplicationRepository applicationRepository;
 
-    public OrganizationService(OrganizationRepository organizationRepository, OrganizationMapper organizationMapper, ApplicationRepository applicationRepository) {
+    public OrganizationService(OrganizationRepository organizationRepository, OrganizationMapper organizationMapper,
+            ApplicationRepository applicationRepository) {
         this.organizationRepository = organizationRepository;
         this.organizationMapper = organizationMapper;
         this.applicationRepository = applicationRepository;
@@ -67,5 +69,32 @@ public class OrganizationService {
         countDTO.setOrganizationCount(organizationRepository.count());
         countDTO.setApplicationCount(applicationRepository.count());
         return countDTO;
+    }
+
+    /**
+     * Get organizations accessible by the user.
+     * If user is Admin, returns all organizations.
+     * Otherwise, returns only organizations where the user has permissions on at
+     * least one application.
+     */
+    public List<OrganizationDTO> getOrganizationsForUser(String username, UserPermissionService userPermissionService) {
+        if (userPermissionService.isAdmin(username)) {
+            return getAllOrganizations();
+        }
+
+        // Get all permissions for the user
+        List<UserPermission> permissions = userPermissionService.getPermissionsByUsername(username);
+
+        // Extract unique organization IDs from permissions
+        List<Long> organizationIds = permissions.stream()
+                .map(p -> p.getOrganization() != null ? p.getOrganization().getId() : null)
+                .filter(id -> id != null)
+                .distinct()
+                .collect(Collectors.toList());
+
+        // Fetch and return organizations
+        return organizationRepository.findAllById(organizationIds).stream()
+                .map(organizationMapper::toDTO)
+                .collect(Collectors.toList());
     }
 }

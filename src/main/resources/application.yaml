@@ -28,9 +28,11 @@ spring:
     hikari:
       maximum-pool-size: 5
       minimum-idle: 2
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
   jpa:
     hibernate:
-      ddl-auto: update  # Estrategia de actualización de esquema, puede ser 'none', 'create', 'create-drop', 'update' Dialecto de Hibernate para PostgreSQL
+      ddl-auto: validate  # Estrategia de actualización de esquema, puede ser 'none', 'create', 'create-drop', 'update' Dialecto de Hibernate para PostgreSQL
     show-sql: false # Habilita el log de las consultas SQL
 
 springdoc:

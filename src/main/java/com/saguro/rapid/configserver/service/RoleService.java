@@ -38,15 +38,24 @@ public class RoleService {
     public RoleDTO updateRole(Long id, RoleDTO roleDTO) {
         Role role = roleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Role not found with id: " + id));
+
+        if (!role.isEditable()) {
+            throw new RuntimeException("Role is not editable");
+        }
+
         role.setName(roleDTO.getName());
         Role updatedRole = roleRepository.save(role);
         return roleMapper.toDTO(updatedRole);
     }
 
     public void deleteRole(Long id) {
-        if (!roleRepository.existsById(id)) {
-            throw new RuntimeException("Role not found with id: " + id);
+        Role role = roleRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Role not found with id: " + id));
+
+        if (!role.isEditable()) {
+            throw new RuntimeException("Role is not editable");
         }
-        roleRepository.deleteById(id);
+
+        roleRepository.delete(role);
     }
 }

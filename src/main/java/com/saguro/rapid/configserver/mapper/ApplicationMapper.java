@@ -6,6 +6,7 @@ import com.saguro.rapid.configserver.entity.User;
 import com.saguro.rapid.configserver.entity.UserPermission;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.ReportingPolicy;
 
 import java.util.List;
@@ -22,10 +23,19 @@ public interface ApplicationMapper {
     @Mapping(target = "organization", ignore = true)
     Application toEntity(ApplicationDTO applicationDTO);
 
+    @Mapping(target = "permissions", source = "permissions")
+    @Mapping(target = "organization", ignore = true)
+    @Mapping(target = "id", ignore = true) // ID shouldn't be updated from DTO usually
+    void updateApplicationFromDto(ApplicationDTO applicationDTO, @MappingTarget Application application);
+
     // Método para mapear de List<UserPermission> a List<String>
     default List<String> mapPermissionsToStrings(List<UserPermission> permissions) {
+        if (permissions == null) {
+            return java.util.Collections.emptyList();
+        }
         return permissions.stream()
-                .map(permission -> permission.getUser().getUsername()) // Extraer el nombre de usuario desde la entidad User
+                .map(permission -> permission.getUser().getUsername()) // Extraer el nombre de usuario desde la entidad
+                                                                       // User
                 .collect(Collectors.toList());
     }
 

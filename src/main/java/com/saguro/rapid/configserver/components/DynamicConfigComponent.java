@@ -4,10 +4,12 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.config.YamlMapFactoryBean;
 import org.springframework.cloud.config.environment.Environment;
 import org.springframework.cloud.config.environment.PropertySource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Component;
-import org.yaml.snakeyaml.Yaml;
+import org.springframework.util.FileSystemUtils;
 
 import com.saguro.rapid.configserver.entity.Application;
 import com.saguro.rapid.configserver.service.ApplicationService;
@@ -15,6 +17,8 @@ import com.saguro.rapid.configserver.service.ApplicationService;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
@@ -24,11 +28,10 @@ import java.util.Set;
 public class DynamicConfigComponent {
 
     private static final Logger logger = LoggerFactory.getLogger(DynamicConfigComponent.class);
-
-    private ApplicationService applicationService;
-    private VaultDynamicConfig vaultDynamicConfig;
-
     private static final Set<String> SUPPORTED_EXTENSIONS = Set.of(".properties", ".yml", ".yaml");
+
+    private final ApplicationService applicationService;
+    private final VaultDynamicConfig vaultDynamicConfig;
 
     public DynamicConfigComponent(ApplicationService applicationService, VaultDynamicConfig vaultDynamicConfig) {
         this.applicationService = applicationService;
@@ -39,115 +42,137 @@ public class DynamicConfigComponent {
         logger.info("Fetching configuration for application: {}, profile: {}, label: {}", application, profile, label);
 
         String[] pathParts = application.split("/");
-
         if (pathParts.length != 3) {
-            logger.error("Invalid application path format: {}. Expected format: {organization}/{application}/{microservice}", application);
-            throw new IllegalArgumentException("The path must follow the format {organization}/{application}/{microservice}");
+            logger.error(
+                    "Invalid application path format: {}. Expected format: {organization}/{application}/{microservice}",
+                    application);
+            throw new IllegalArgumentException(
+                    "The path must follow the format {organization}/{application}/{microservice}");
         }
 
         String uidOrg = pathParts[0];
         String uidApp = pathParts[1];
         String microservice = pathParts[2];
 
-        Optional<Application> applicationOpt = applicationService.findByOrganizationAndUidAndMicroservice(uidOrg, uidApp, label);
+        Optional<Application> applicationOpt = applicationService.findByOrganizationAndUidAndMicroservice(uidOrg,
+                uidApp, label);
 
         if (applicationOpt.isEmpty()) {
             logger.warn("No application found for organization: {}, application: {}, label: {}", uidOrg, uidApp, label);
+            return null;
         }
 
-        return applicationOpt.map(appEntity -> buildEnvironment(appEntity, profile, microservice, label)).orElse(null);
+        return buildEnvironment(applicationOpt.get(), profile, microservice, label);
     }
 
     private Environment buildEnvironment(Application appEntity, String profile, String microservice, String label) {
-        logger.info("Building environment for application: {}, profile: {}, microservice: {}", appEntity.getName(), profile, microservice);
+        logger.info("Building environment for application: {}, profile: {}, microservice: {}", appEntity.getName(),
+                profile, microservice);
 
         Environment environment = new Environment(microservice, profile);
+        File tempDir = null;
 
-        // Load default properties
-        loadDefaultProperties(environment, appEntity, microservice, label);
+        try {
+            tempDir = prepareTemporaryDirectory(label);
+            Git git = cloneRepository(appEntity, tempDir, label);
+            // We don't need to keep the Git object open, just the files.
+            // But Git implements AutoCloseable, so we should close it.
+            try (git) {
+                // Load default properties
+                loadDefaultProperties(environment, appEntity, microservice, tempDir);
 
-        // Load profile-specific properties if not "default"
-        if (!profile.equals("default")) {
-            loadProfileProperties(environment, appEntity, microservice, profile, label);
+                // Load profile-specific properties if not "default"
+                if (!"default".equals(profile)) {
+                    loadProfileProperties(environment, appEntity, microservice, profile, tempDir);
+                }
+            }
+
+            // Load Vault properties if enabled
+            loadVaultProperties(environment, appEntity, microservice);
+
+        } catch (Exception e) {
+            logger.error("Error building environment", e);
+            throw new RuntimeException("Error building environment", e);
+        } finally {
+            if (tempDir != null) {
+                deleteDirectory(tempDir);
+            }
         }
-
-        // Load Vault properties if enabled
-        loadVaultProperties(environment, appEntity, microservice);
 
         return environment;
     }
 
-    private void loadDefaultProperties(Environment environment, Application appEntity, String microservice, String label) {
-        logger.info("Loading default properties for application: {}, microservice: {}", appEntity.getName(), microservice);
-        Environment defaultEnvironment = loadConfigFromApplication(appEntity, microservice, "default", label);
+    private void loadDefaultProperties(Environment environment, Application appEntity, String microservice,
+            File tempDir) {
+        logger.info("Loading default properties for application: {}, microservice: {}", appEntity.getName(),
+                microservice);
+        Environment defaultEnvironment = loadConfigFromDir(appEntity, microservice, "default", tempDir);
         if (defaultEnvironment != null) {
             environment.getPropertySources().addAll(defaultEnvironment.getPropertySources());
         } else {
-            logger.warn("No default properties found for application: {}, microservice: {}", appEntity.getName(), microservice);
+            logger.warn("No default properties found for application: {}, microservice: {}", appEntity.getName(),
+                    microservice);
         }
     }
 
-    private void loadProfileProperties(Environment environment, Application appEntity, String microservice, String profile, String label) {
-        logger.info("Loading profile-specific properties for application: {}, profile: {}, microservice: {}", appEntity.getName(), profile, microservice);
-        Environment profileEnvironment = loadConfigFromApplication(appEntity, microservice, profile, label);
+    private void loadProfileProperties(Environment environment, Application appEntity, String microservice,
+            String profile, File tempDir) {
+        logger.info("Loading profile-specific properties for application: {}, profile: {}, microservice: {}",
+                appEntity.getName(), profile, microservice);
+        Environment profileEnvironment = loadConfigFromDir(appEntity, microservice, profile, tempDir);
         if (profileEnvironment != null) {
             environment.getPropertySources().addAll(profileEnvironment.getPropertySources());
         } else {
-            logger.warn("No properties found for profile: {} in application: {}, microservice: {}", profile, appEntity.getName(), microservice);
+            logger.warn("No properties found for profile: {} in application: {}, microservice: {}", profile,
+                    appEntity.getName(), microservice);
         }
     }
 
     private void loadVaultProperties(Environment environment, Application appEntity, String microservice) {
         if (appEntity.isVaultEnabled()) {
-            logger.info("Loading Vault properties for application: {}, microservice: {}", appEntity.getName(), microservice);
-            Map<String, Object> vaultProperties = vaultDynamicConfig.configureAndFetchVaultProperties(appEntity, microservice);
+            logger.info("Loading Vault properties for application: {}, microservice: {}", appEntity.getName(),
+                    microservice);
+            Map<String, Object> vaultProperties = vaultDynamicConfig.configureAndFetchVaultProperties(appEntity,
+                    microservice);
             if (!vaultProperties.isEmpty()) {
                 PropertySource propertyVault = new PropertySource("vault", vaultProperties);
                 environment.add(propertyVault);
-                logger.info("Vault properties successfully loaded for application: {}, microservice: {}", appEntity.getName(), microservice);
+                logger.info("Vault properties successfully loaded for application: {}, microservice: {}",
+                        appEntity.getName(), microservice);
             } else {
-                logger.warn("No Vault properties found for application: {}, microservice: {}", appEntity.getName(), microservice);
+                logger.warn("No Vault properties found for application: {}, microservice: {}", appEntity.getName(),
+                        microservice);
             }
         } else {
             logger.info("Vault is disabled for application: {}", appEntity.getName());
         }
     }
 
-    private Environment loadConfigFromApplication(Application appEntity, String application, String profile, String label) {
-        try {
-            logger.info("Loading configuration from Git for application: {}, profile: {}, label: {}", application, profile, label);
-
-            if (label.contains("..") || label.contains("/") || label.contains("\\")) {
-                logger.error("Invalid label: {}", label);
-                throw new IllegalArgumentException("Invalid filename");
-            }
-            if (application.contains("..") || application.contains("/") || application.contains("\\")) {
-                logger.error("Invalid application name: {}", application);
-                throw new IllegalArgumentException("Invalid filename");
-            }
-            if (profile.contains("..") || profile.contains("/") || profile.contains("\\")) {
-                throw new IllegalArgumentException("Invalid profile name");
-            }
-            File tempDir = prepareTemporaryDirectory(label);
-            Git git = cloneRepository(appEntity, tempDir, label);
-
-            File configFile = findConfigFile(tempDir, application, profile);
-
-            return getPropertySource(application, profile, git, configFile, appEntity.getUri());
-        } catch (IOException e) {
-            logger.error("Error handling configuration file for application: {}, profile: {}, label: {}", application, profile, label, e);
-            throw new RuntimeException("Error handling configuration file", e);
-        } catch (GitAPIException e) {
-            logger.error("Error cloning Git repository for application: {}, profile: {}, label: {}", application, profile, label, e);
-            throw new RuntimeException("Error cloning Git repository", e);
+    private Environment loadConfigFromDir(Application appEntity, String application, String profile, File tempDir) {
+        File configFile = findConfigFile(tempDir, application, profile);
+        if (configFile == null) {
+            return null;
         }
+
+        Environment environment = new Environment(application, profile);
+        try {
+            if (validateConfigFile(configFile)) {
+                String fileExtension = getFileExtension(configFile);
+                Map<String, Object> properties = loadConfigFile(configFile, fileExtension);
+                PropertySource propertySource = new PropertySource(appEntity.getUri(), properties);
+                environment.add(propertySource);
+                logger.info("Properties successfully loaded from file: {}", configFile.getAbsolutePath());
+                return environment;
+            }
+        } catch (IOException e) {
+            logger.error("Error loading config file", e);
+        }
+        return null;
     }
 
     private File prepareTemporaryDirectory(String label) throws IOException {
-        File tempDir = new File(System.getProperty("java.io.tmpdir"), "config-repo-" + label);
-        if (tempDir.exists()) {
-            deleteDirectory(tempDir);
-        }
+        // Create a unique temporary directory to avoid race conditions
+        File tempDir = Files.createTempDirectory("config-repo-" + label).toFile();
         logger.debug("Temporary directory prepared: {}", tempDir.getAbsolutePath());
         return tempDir;
     }
@@ -163,45 +188,18 @@ public class DynamicConfigComponent {
 
     private File findConfigFile(File tempDir, String application, String profile) {
         File controlledDir = tempDir.getAbsoluteFile();
-        if (profile.equals("default")) {
-            for (String ext : SUPPORTED_EXTENSIONS) {
-                File configFile = new File(controlledDir, application + ext);
-                if (configFile.exists()) {
-                    logger.info("Configuration file found: {}", configFile.getAbsolutePath());
-                    return configFile;
-                }
-            }
-        } else {
-            for (String ext : SUPPORTED_EXTENSIONS) {
-                File configFile = new File(controlledDir, application + "-" + profile + ext);
-                if (configFile.exists()) {
-                    logger.info("Configuration file found: {}", configFile.getAbsolutePath());
-                    return configFile;
-                }
+        String suffix = "default".equals(profile) ? "" : "-" + profile;
+
+        for (String ext : SUPPORTED_EXTENSIONS) {
+            File configFile = new File(controlledDir, application + suffix + ext);
+            if (configFile.exists()) {
+                logger.info("Configuration file found: {}", configFile.getAbsolutePath());
+                return configFile;
             }
         }
+
         logger.warn("No configuration file found for application: {}, profile: {}", application, profile);
         return null;
-    }
-
-    private Environment getPropertySource(String application, String profile, Git git, File configFile, String urlGit) throws IOException {
-        Environment environment = new Environment(application, profile);
-        if (validateConfigFile(configFile)) {
-            String fileExtension = getFileExtension(configFile);
-            if (!SUPPORTED_EXTENSIONS.contains(fileExtension.toLowerCase())) {
-                logger.error("Unsupported file extension: {}", fileExtension);
-                throw new IllegalArgumentException("Unsupported file extension: " + fileExtension);
-            }
-            Map<String, Object> properties = loadConfigFile(configFile, fileExtension);
-            PropertySource propertySource = new PropertySource(urlGit, properties);
-            environment.add(propertySource);
-            logger.info("Properties successfully loaded from file: {}", configFile.getAbsolutePath());
-        } else {
-            logger.warn("Invalid or missing configuration file: {}", configFile);
-        }
-        try (git) {
-            return environment;
-        }
     }
 
     private boolean validateConfigFile(File configFile) {
@@ -216,7 +214,6 @@ public class DynamicConfigComponent {
         String fileName = file.getName();
         int lastDotIndex = fileName.lastIndexOf('.');
         if (lastDotIndex == -1) {
-            logger.error("File does not have an extension: {}", fileName);
             throw new IllegalArgumentException("File does not have an extension: " + fileName);
         }
         return fileName.substring(lastDotIndex);
@@ -228,7 +225,6 @@ public class DynamicConfigComponent {
         } else if (fileExtension.equalsIgnoreCase(".yml") || fileExtension.equalsIgnoreCase(".yaml")) {
             return loadYamlFile(configFile);
         } else {
-            logger.error("Unsupported file extension: {}", fileExtension);
             throw new IllegalArgumentException("Unsupported file extension: " + fileExtension);
         }
     }
@@ -239,55 +235,28 @@ public class DynamicConfigComponent {
         try (FileInputStream fis = new FileInputStream(configFile)) {
             properties.load(fis);
         }
-
+        // Use HashMap instead of Properties (which is Hashtable)
         Map<String, Object> result = new java.util.HashMap<>();
-        properties.forEach((key, value) -> result.put(key.toString(), value));
+        for (String key : properties.stringPropertyNames()) {
+            result.put(key, properties.getProperty(key));
+        }
         return result;
     }
 
-    private Map<String, Object> loadYamlFile(File configFile) throws IOException {
+    private Map<String, Object> loadYamlFile(File configFile) {
         logger.debug("Loading YAML file: {}", configFile.getAbsolutePath());
-        Yaml yaml = new Yaml();
-        try (FileInputStream fis = new FileInputStream(configFile)) {
-            Map<String, Object> yamlData = yaml.load(fis);
-
-            Map<String, Object> properties = new java.util.HashMap<>();
-            flattenYaml("", yamlData, properties);
-
-            return properties;
-        }
-    }
-
-    private void flattenYaml(String parentKey, Map<String, Object> yamlData, Map<String, Object> properties) {
-        for (Map.Entry<String, Object> entry : yamlData.entrySet()) {
-            String key = parentKey.isEmpty() ? entry.getKey() : parentKey + "." + entry.getKey();
-            Object value = entry.getValue();
-
-            if (value instanceof Map) {
-                @SuppressWarnings("unchecked")
-                Map<String, Object> nestedMap = (Map<String, Object>) value;
-                flattenYaml(key, nestedMap, properties);
-            } else {
-                properties.put(key, value);
-            }
-        }
+        YamlMapFactoryBean factory = new YamlMapFactoryBean();
+        factory.setResources(new FileSystemResource(configFile));
+        Map<String, Object> map = factory.getObject();
+        return map != null ? map : Collections.emptyMap();
     }
 
     private void deleteDirectory(File directory) {
-        if (directory.exists()) {
-            File[] files = directory.listFiles();
-            if (files != null) {
-                for (File file : files) {
-                    if (file.isDirectory()) {
-                        deleteDirectory(file);
-                    } else {
-                        logger.debug("Deleting file: {}", file.getAbsolutePath());
-                        file.delete();
-                    }
-                }
-            }
-            logger.debug("Deleting directory: {}", directory.getAbsolutePath());
-            directory.delete();
+        try {
+            FileSystemUtils.deleteRecursively(directory);
+            logger.debug("Deleted directory: {}", directory.getAbsolutePath());
+        } catch (Exception e) {
+            logger.warn("Failed to delete directory: {}", directory.getAbsolutePath(), e);
         }
     }
 }
