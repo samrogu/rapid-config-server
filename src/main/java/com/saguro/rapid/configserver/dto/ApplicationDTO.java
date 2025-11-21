@@ -30,10 +30,12 @@ public class ApplicationDTO {
     private boolean vaultEnabled;
     private String vaultUsername; // Nombre de usuario para autenticación UserPass
     private String vaultPassword; // Contraseña para autenticación UserPass
+    private String vaultSchema; // http o https
+    private Integer vaultPort; // Puerto del servidor Vault
 
     private Long organizationId; // Solo el ID de la organización
     private String uid; // UID único para identificar la aplicación
-    private VaultAuthMethod vaultAuthMethod; 
+    private VaultAuthMethod vaultAuthMethod;
     private List<String> permissions; // Lista de nombres de usuario
 
 }

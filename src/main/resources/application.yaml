@@ -20,6 +20,7 @@ spring:
           searchPaths: # Si quieres especificar rutas por defecto
             - "config-repo"
   datasource:
+    #url: jdbc:postgresql://192.168.1.98:5432/your_db  # Cambia 'your_db' al nombre de tu base de datos
     url: jdbc:postgresql://localhost:5432/your_db  # Cambia 'your_db' al nombre de tu base de datos
     username: your_user  # Tu nombre de usuario de PostgreSQL
     password: your_password  # Tu contraseña de PostgreSQL
@@ -27,9 +28,11 @@ spring:
     hikari:
       maximum-pool-size: 5
       minimum-idle: 2
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
   jpa:
     hibernate:
-      ddl-auto: update  # Estrategia de actualización de esquema, puede ser 'none', 'create', 'create-drop', 'update' Dialecto de Hibernate para PostgreSQL
+      ddl-auto: validate  # Estrategia de actualización de esquema, puede ser 'none', 'create', 'create-drop', 'update' Dialecto de Hibernate para PostgreSQL
     show-sql: false # Habilita el log de las consultas SQL
 
 springdoc:

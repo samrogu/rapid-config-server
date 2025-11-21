@@ -1,7 +1,8 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.4.3'
+    id 'org.springframework.boot' version '3.5.3'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.graalvm.buildtools.native' version '0.10.6'
 }
 
 group = 'com.saguro'
@@ -18,7 +19,7 @@ repositories {
 }
 
 ext {
-    set('springCloudVersion', "2024.0.0")
+    set('springCloudVersion', "2025.0.0")
 }
 
 dependencies {
@@ -35,6 +36,7 @@ dependencies {
 
     // Dependencia de PostgreSQL
     runtimeOnly 'org.postgresql:postgresql'
+    implementation 'org.liquibase:liquibase-core'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
 
     // Dependencias de Lombok
@@ -61,6 +63,8 @@ dependencies {
     // Eliminar esta línea si no usas Thymeleaf
     // implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'ch.qos.logback:logback-classic:1.5.18'
+    implementation("org.slf4j:slf4j-simple:2.0.17")
+    testRuntimeOnly 'com.h2database:h2'
 }
 
 dependencyManagement {
@@ -78,19 +82,37 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
-bootBuildImage {
-    imageName = System.getenv('IMAGE_NAME') ?: "rapid-config-server:${project.version}"
-    // Builder ligero por defecto para minimizar el tamaño de la imagen
-    builder = System.getenv('BUILDER') ?: "paketobuildpacks/builder-jammy-tiny"
-    if (System.getenv('REGISTRY_URL')) {
-        publish = true
-        docker {
-            publishRegistry {
-                url = System.getenv('REGISTRY_URL')
-                username = System.getenv('REGISTRY_USERNAME')
-                password = System.getenv('REGISTRY_PASSWORD')
-            }
+graalvmNative {
+    metadataRepository {
+        enabled = true
+    }
+    binaries {
+        main {
+            imageName = 'rapid-config-server'
+            debug = true
+            verbose = true
+            buildArgs.addAll(
+                '--no-fallback',
+                '--initialize-at-build-time=org.slf4j.LoggerFactory,ch.qos.logback,org.hibernate,com.sun.jmx,javax.management',
+                '--initialize-at-build-time=org.apache.sshd',
+                '--initialize-at-run-time=io.netty,org.springframework.data.jpa.repository.support',
+                '-H:+ReportExceptionStackTraces',
+                '-H:+PrintClassInitialization',
+                '--enable-url-protocols=http,https',
+                '--enable-all-security-services',
+                '-H:+AddAllCharsets',
+                '--allow-incomplete-classpath'
+            )
+            jvmArgs.addAll(
+                '-Xmx6g',
+                '-XX:+UseG1GC'
+            )
         }
     }
 }
+
+tasks.named('nativeCompile') {
+    dependsOn(':generateResourcesConfigFile', ':processResources')
+}
+
 

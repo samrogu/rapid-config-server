@@ -9,6 +9,7 @@ public class UserPermissionDTO {
     private Long organizationId; // ID de la organización
     private Long applicationId; // ID de la aplicación (puede ser null si aplica solo a la organización)
 
+    private boolean canManage; // Permiso para gestionar la organización o aplicación
     private boolean canRead;
     private boolean canCreate;
     private boolean canUpdate;

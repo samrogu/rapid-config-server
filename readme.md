@@ -26,7 +26,9 @@ Expone endpoints para manejar aplicaciones:
 
 ### Imagen de contenedor
 
-Se puede generar una imagen de contenedor nativa con la tarea `bootBuildImage` de Spring Boot.
+Se puede generar una imagen de contenedor nativa con la tarea `bootBuildImage` de Spring Boot. 
+Para aprovechar la compilación a imagen nativa se ha configurado el plugin `org.graalvm.buildtools.native`. 
+La tarea se ejecuta con `-Pnative`, lo que compila la aplicación como binario y la incluye en la imagen.
 
 Variables de entorno útiles:
 
@@ -42,7 +44,27 @@ IMAGE_NAME=tu-registro.com/rapid-config-server:1.0 \
 BUILDER=paketobuildpacks/builder-jammy-tiny \
 REGISTRY_URL=tu-registro.com \
 REGISTRY_USERNAME=usuario REGISTRY_PASSWORD=clave \
-./gradlew bootBuildImage
+./gradlew bootBuildImage -Pnative
 ```
 
 Si se define `REGISTRY_URL`, la tarea publicará la imagen automáticamente en ese repositorio.
+
+### Compilación local
+
+El wrapper de Gradle (`./gradlew`) descarga la distribución de Gradle y todas
+las dependencias la primera vez que se ejecuta. Por ello es necesario contar
+con acceso a Internet o con un repositorio local de dependencias. En entornos
+sin conexión o con proxy restringido se producirá un error de descarga y la
+compilación fallará.
+
+Para compilar el proyecto únicamente ejecuta:
+
+```bash
+./gradlew build
+```
+
+Y para generar la imagen nativa en un contenedor:
+
+```bash
+./gradlew bootBuildImage -Pnative
+```

@@ -34,17 +34,17 @@ public class Application {
     private String uid; // UID único para identificar la aplicación
 
     // Información relacionada con Git y Vault
-    private String uri;            // URI del repositorio Git
-    private String profile;        // Perfil de configuración
-    private String label;          // Rama o etiqueta en Git
-    private boolean enabled;       // Si la aplicación está habilitada
+    private String uri; // URI del repositorio Git
+    private String profile; // Perfil de configuración
+    private String label; // Rama o etiqueta en Git
+    private boolean enabled; // Si la aplicación está habilitada
 
     // Campos relacionados con Vault
-    private String vaultUrl;       // URL del servidor Vault
-    private String secretEngine;   // Motor de secretos (e.g., kv-v2)
-    private String vaultToken;     // Token de autenticación para Vault
-    private String appRoleId;      // Opcional: Role ID para AppRole
-    private String appRoleSecret;  // Opcional: Secret ID para AppRole
+    private String vaultUrl; // URL del servidor Vault
+    private String secretEngine; // Motor de secretos (e.g., kv-v2)
+    private String vaultToken; // Token de autenticación para Vault
+    private String appRoleId; // Opcional: Role ID para AppRole
+    private String appRoleSecret; // Opcional: Secret ID para AppRole
     @Column(columnDefinition = "boolean default false")
     private boolean vaultEnabled;
 
@@ -54,6 +54,9 @@ public class Application {
     // Campos adicionales para autenticación por usuario y contraseña
     private String vaultUsername; // Nombre de usuario para autenticación UserPass
     private String vaultPassword; // Contraseña para autenticación UserPass
+
+    private String vaultSchema; // http o https
+    private Integer vaultPort; // Puerto del servidor Vault
 
     @OneToMany(mappedBy = "application", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserPermission> permissions;

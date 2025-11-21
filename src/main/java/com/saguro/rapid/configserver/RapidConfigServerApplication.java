@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class RapidConfigServerApplication {
 
 	public static void main(String[] args) throws NoSuchAlgorithmException {
+		System.setProperty("liquibase.duplicateFileMode", "WARN");
 		SpringApplication.run(RapidConfigServerApplication.class, args);
 	}
 

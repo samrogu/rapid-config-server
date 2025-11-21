@@ -18,7 +18,8 @@ public class UserInitializer implements CommandLineRunner {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserInitializer(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
+    public UserInitializer(UserRepository userRepository, RoleRepository roleRepository,
+            PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
@@ -35,6 +36,7 @@ public class UserInitializer implements CommandLineRunner {
                 .orElseGet(() -> {
                     Role role = new Role();
                     role.setName(defaultRoleName);
+                    role.setEditable(false); // El rol Admin no debe ser editable
                     return roleRepository.save(role);
                 });
 

@@ -3,60 +3,91 @@ package com.saguro.rapid.configserver.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.saguro.rapid.configserver.dto.ApplicationDTO;
 import com.saguro.rapid.configserver.service.ApplicationService;
+import com.saguro.rapid.configserver.service.UserPermissionService;
+import com.saguro.rapid.configserver.entity.UserPermission;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import com.saguro.rapid.configserver.components.JwtAuthenticationFilter;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.Collections;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(controllers = ApplicationController.class)
-@AutoConfigureMockMvc(addFilters = false)
 class ApplicationControllerTest {
 
-    @Autowired
     private MockMvc mockMvc;
+    private ObjectMapper objectMapper = new ObjectMapper();
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @MockBean
+    @Mock
     private ApplicationService applicationService;
 
-    @MockBean
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
+    @Mock
+    private UserPermissionService userPermissionService;
+
+    @InjectMocks
+    private ApplicationController controller;
+
+    @BeforeEach
+    void setup() {
+        MockitoAnnotations.openMocks(this);
+        var auth = new UsernamePasswordAuthenticationToken(
+            "user",
+            "N/A",
+            java.util.List.of(new SimpleGrantedAuthority("Admin"))
+        );
+        SecurityContextHolder.getContext().setAuthentication(auth);
+        // Construimos MockMvc en modo standalone, sin arrancar Spring
+        mockMvc = MockMvcBuilders
+            .standaloneSetup(controller)
+            .build();
+    }
 
     @Test
     void getAllApplicationsReturnsList() throws Exception {
         ApplicationDTO dto = new ApplicationDTO();
         dto.setId(1L);
         dto.setName("App");
-        Mockito.when(applicationService.getAllApplications()).thenReturn(Collections.singletonList(dto));
+
+        when(applicationService.getAllApplications())
+            .thenReturn(Collections.singletonList(dto));
+        UserPermission perm = new UserPermission();
+        perm.setCanRead(true);
+        when(userPermissionService.getPermissionsByUsername("user"))
+            .thenReturn(Collections.singletonList(perm));
 
         mockMvc.perform(get("/api/applications"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1L))
-                .andExpect(jsonPath("$[0].name").value("App"));
+               .andExpect(status().isOk())
+               .andExpect(content().contentType(APPLICATION_JSON))
+               .andExpect(jsonPath("$[0].id").value(1))
+               .andExpect(jsonPath("$[0].name").value("App"));
     }
 
     @Test
     void createApplicationReturnsCreated() throws Exception {
         ApplicationDTO dto = new ApplicationDTO();
         dto.setName("App");
-        Mockito.when(applicationService.createApplication(Mockito.eq(2L), Mockito.any(ApplicationDTO.class)))
-                .thenReturn(dto);
+
+        when(applicationService.createApplication(eq(2L), any(ApplicationDTO.class)))
+            .thenReturn(dto);
+        when(userPermissionService.canCreateApplication("user", 2L)).thenReturn(true);
 
         mockMvc.perform(post("/api/applications/organization/2")
-                .contentType("application/json")
+                .contentType(APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("App"));
+               .andExpect(status().isOk())
+               .andExpect(content().contentType(APPLICATION_JSON))
+               .andExpect(jsonPath("$.name").value("App"));
     }
 }
