@@ -36,11 +36,11 @@ class AuthControllerTest {
     void setup() {
         MockitoAnnotations.openMocks(this);
         mockMvc = MockMvcBuilders
-            .standaloneSetup(controller)
-            // Solo registramos el converter para JSON
-            .setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
-            // OMITIMOS el filtro de seguridad
-            .build();
+                .standaloneSetup(controller)
+                // Solo registramos el converter para JSON
+                .setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
+                // OMITIMOS el filtro de seguridad
+                .build();
     }
 
     @Test
@@ -50,7 +50,7 @@ class AuthControllerTest {
         request.setUsername("user");
         request.setPassword("pass");
 
-        UserInfo userInfo = new UserInfo(1L, "user", Set.of("ROLE_USER"));
+        UserInfo userInfo = new UserInfo(1L, "user", Set.of("ROLE_USER"), false, java.util.Collections.emptyList());
         LoginResponse response = new LoginResponse("token", userInfo);
         when(authService.authenticate("user", "pass")).thenReturn(response);
 
@@ -58,9 +58,9 @@ class AuthControllerTest {
         mockMvc.perform(post("/api/auth/login")
                 .contentType(APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-               .andExpect(status().isOk())
-               // Aserciones sobre el JSON
-               .andExpect(jsonPath("$.token").value("token"))
-               .andExpect(jsonPath("$.userInfo.username").value("user"));
+                .andExpect(status().isOk())
+                // Aserciones sobre el JSON
+                .andExpect(jsonPath("$.token").value("token"))
+                .andExpect(jsonPath("$.userInfo.username").value("user"));
     }
 }
