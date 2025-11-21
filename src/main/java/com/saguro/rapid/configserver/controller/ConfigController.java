@@ -36,8 +36,8 @@ public class ConfigController {
             org.springframework.security.core.Authentication authentication) {
 
         String username = authentication.getName();
-        logger.info("Config request for {}/{}/{} (label: {}) by user: {}", organization, application, microservice,
-                label, username);
+        logger.info("Config request for {}/{}/{} (label: {}) by user: {}", sanitizeLog(organization),
+                sanitizeLog(application), sanitizeLog(microservice), sanitizeLog(label), sanitizeLog(username));
 
         // 1. Resolver la aplicación para obtener su ID
         // CORRECCIÓN: Usar 'label' en lugar de 'microservice' para buscar la
@@ -46,7 +46,8 @@ public class ConfigController {
         var appOpt = applicationService.findByOrganizationAndUidAndMicroservice(organization, application, label);
 
         if (appOpt.isEmpty()) {
-            logger.warn("Application not found for lookup: {}/{}/{}", organization, application, label);
+            logger.warn("Application not found for lookup: {}/{}/{}", sanitizeLog(organization),
+                    sanitizeLog(application), sanitizeLog(label));
             // Si la app no existe en nuestra BD, delegamos a DynamicConfigComponent (que
             // probablemente fallará o retornará null)
             // pero no bloqueamos por permisos ya que no hay ID contra el cual verificar.
@@ -61,11 +62,11 @@ public class ConfigController {
         boolean isAdmin = userPermissionService.isAdmin(username);
         boolean canRead = userPermissionService.canReadApplication(authentication, applicationId);
 
-        logger.info("Permission check - User: {}, IsAdmin: {}, CanReadApp({}): {}", username, isAdmin, applicationId,
-                canRead);
+        logger.info("Permission check - User: {}, IsAdmin: {}, CanReadApp({}): {}", sanitizeLog(username), isAdmin,
+                applicationId, canRead);
 
         if (!isAdmin && !canRead) {
-            logger.warn("Access denied for user {} to application ID {}", username, applicationId);
+            logger.warn("Access denied for user {} to application ID {}", sanitizeLog(username), applicationId);
             throw new org.springframework.security.access.AccessDeniedException("Access is denied");
         }
 
@@ -74,5 +75,12 @@ public class ConfigController {
 
         // Retornar la lista filtrada
         return dynamicConfigComponent.findOne(fullApplicationPath, profile, label);
+    }
+
+    private String sanitizeLog(String input) {
+        if (input == null) {
+            return "";
+        }
+        return input.replaceAll("[\n\r\t]", "_");
     }
 }
