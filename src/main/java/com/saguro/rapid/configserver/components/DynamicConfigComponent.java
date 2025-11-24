@@ -19,6 +19,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
@@ -252,7 +253,36 @@ public class DynamicConfigComponent {
         YamlMapFactoryBean factory = new YamlMapFactoryBean();
         factory.setResources(new FileSystemResource(configFile));
         Map<String, Object> map = factory.getObject();
-        return map != null ? map : Collections.emptyMap();
+        // Flatten nested YAML structures into dot-notated keys to mimic properties
+        // format
+        Map<String, Object> flatMap = new java.util.HashMap<>();
+        if (map != null) {
+            flattenMap(map, "", flatMap);
+        }
+        return flatMap;
+    }
+
+    /**
+     * Recursively flattens a nested map into a single-level map with dot-separated
+     * keys.
+     * Example: {"a": {"b": "c"}} becomes {"a.b": "c"}.
+     */
+    @SuppressWarnings("unchecked")
+    private void flattenMap(Map<String, Object> source, String prefix, Map<String, Object> target) {
+        for (Map.Entry<String, Object> entry : source.entrySet()) {
+            String key = prefix.isEmpty() ? entry.getKey() : prefix + "." + entry.getKey();
+            Object value = entry.getValue();
+            if (value instanceof Map) {
+                // noinspection unchecked
+                flattenMap((Map<String, Object>) value, key, target);
+            } else if (value instanceof List) {
+                // Convert list to comma-separated string representation
+                List<?> list = (List<?>) value;
+                target.put(key, String.join(",", list.stream().map(Object::toString).toArray(String[]::new)));
+            } else {
+                target.put(key, value);
+            }
+        }
     }
 
     private void deleteDirectory(File directory) {
