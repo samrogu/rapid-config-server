@@ -104,7 +104,7 @@ graalvmNative {
                 '--allow-incomplete-classpath'
             )
             jvmArgs.addAll(
-                '-Xmx6g',
+                '-Xmx1g',
                 '-XX:+UseG1GC'
             )
         }
